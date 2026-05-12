@@ -76,6 +76,7 @@ export default class IconCheckboxPlugin extends Plugin {
 		const trimedLineText = lineText.trimStart();
 		if (forceOpen || this.checkIsRightTrigger(trimedLineText)) {
 			createIconPicker(
+				this.app,
 				editor,
 				this.settings.theme,
 				this.settings.icons,

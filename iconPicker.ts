@@ -1,19 +1,29 @@
-import { icons_setting, Icon_Item_Setting, Icon_Setting } from "default_icons";
-import { Editor, MarkdownView } from "obsidian";
+import { Icon_Item_Setting } from "default_icons";
+import { App, Editor, Scope } from "obsidian";
+
+let activePickerClose: (() => void) | null = null;
 
 export function createIconPicker(
+	app: App,
 	editor: Editor,
-	theme: string,
+	_theme: string,
 	icons: Icon_Item_Setting[],
 	customTrigger: string,
 	lineNumber: number,
 	lineText: string
 ) {
+	activePickerClose?.();
+
+	if (icons.length === 0) {
+		return;
+	}
+
 	const pickerEl = document.createElement("div");
 	pickerEl.className = "icon-picker";
 
 	let selectedIndex = 0;
 	const numColumns = 4; // Number of columns for the grid
+	const optionEls: HTMLElement[] = [];
 
 	icons.forEach(({ name, icon, value }, index) => {
 		const iconEl = document.createElement("div");
@@ -38,6 +48,7 @@ export function createIconPicker(
 			iconEl.classList.add("selected"); // Highlight the first option
 		}
 
+		optionEls.push(iconEl);
 		pickerEl.appendChild(iconEl);
 	});
 
@@ -84,42 +95,73 @@ export function createIconPicker(
 		}, 0);
 	};
 
-	const handleKeyDown = (event: KeyboardEvent) => {
-		event.preventDefault();
-		event.stopPropagation();
-		const options = pickerEl.getElementsByClassName("icon-option");
-
-		if (event.key === "ArrowDown") {
-			options[selectedIndex].classList.remove("selected");
-			selectedIndex = (selectedIndex + numColumns) % icons.length;
-			options[selectedIndex].classList.add("selected");
-		} else if (event.key === "ArrowUp") {
-			options[selectedIndex].classList.remove("selected");
-			selectedIndex =
-				(selectedIndex - numColumns + icons.length) % icons.length;
-			options[selectedIndex].classList.add("selected");
-		} else if (event.key === "ArrowRight") {
-			options[selectedIndex].classList.remove("selected");
-			selectedIndex = (selectedIndex + 1) % icons.length;
-			options[selectedIndex].classList.add("selected");
-		} else if (event.key === "ArrowLeft") {
-			options[selectedIndex].classList.remove("selected");
-			selectedIndex = (selectedIndex - 1 + icons.length) % icons.length;
-			options[selectedIndex].classList.add("selected");
-		} else if (event.key === " ") {
-			// Space
-			selectIcon(icons[selectedIndex].value);
-		} else if (event.key === "Escape") {
-			event.preventDefault();
-			closePicker();
-		} else {
-			return;
-		}
+	const moveSelection = (nextIndex: number) => {
+		optionEls[selectedIndex].classList.remove("selected");
+		selectedIndex = nextIndex;
+		optionEls[selectedIndex].classList.add("selected");
+		optionEls[selectedIndex].scrollIntoView({ block: "nearest" });
 	};
 
-	this.app.workspace
-		.getActiveViewOfType(MarkdownView)
-		?.registerDomEvent(document, "keydown", handleKeyDown);
+	const isPickerKey = (key: string): boolean =>
+		key === "ArrowDown" ||
+		key === "ArrowUp" ||
+		key === "ArrowRight" ||
+		key === "ArrowLeft" ||
+		key === " " ||
+		key === "Enter" ||
+		key === "Escape";
+
+	const handleKeyboardAction = (key: string): boolean => {
+		if (key === "ArrowDown") {
+			moveSelection((selectedIndex + numColumns) % icons.length);
+		} else if (key === "ArrowUp") {
+			moveSelection((selectedIndex - numColumns + icons.length) % icons.length);
+		} else if (key === "ArrowRight") {
+			moveSelection((selectedIndex + 1) % icons.length);
+		} else if (key === "ArrowLeft") {
+			moveSelection((selectedIndex - 1 + icons.length) % icons.length);
+		} else if (key === " " || key === "Enter") {
+			selectIcon(icons[selectedIndex].value);
+		} else if (key === "Escape") {
+			closePicker();
+		} else {
+			return false;
+		}
+
+		return true;
+	};
+
+	const withKeyboardCapture = (key: string) => {
+		return (event: KeyboardEvent) => {
+			// Like Obsidian's EditorSuggest, popup navigation owns these keys
+			// while the picker is open. Returning false also prevents default.
+			event.preventDefault();
+			event.stopPropagation();
+			handleKeyboardAction(key);
+			return false;
+		};
+	};
+
+	const handleKeyDownCapture = (event: KeyboardEvent) => {
+		if (!isPickerKey(event.key)) {
+			return;
+		}
+
+		if (!event.defaultPrevented) {
+			handleKeyboardAction(event.key);
+		}
+		event.preventDefault();
+		event.stopImmediatePropagation();
+	};
+
+	const pickerScope = new Scope(app.scope);
+	pickerScope.register([], "ArrowDown", withKeyboardCapture("ArrowDown"));
+	pickerScope.register([], "ArrowUp", withKeyboardCapture("ArrowUp"));
+	pickerScope.register([], "ArrowRight", withKeyboardCapture("ArrowRight"));
+	pickerScope.register([], "ArrowLeft", withKeyboardCapture("ArrowLeft"));
+	pickerScope.register([], "Enter", withKeyboardCapture("Enter"));
+	pickerScope.register([], " ", withKeyboardCapture(" "));
+	pickerScope.register([], "Escape", withKeyboardCapture("Escape"));
 
 	// @ts-ignore
 	const cursorCoords = editor.cm.coordsAtPos(
@@ -130,6 +172,8 @@ export function createIconPicker(
 	pickerEl.style.top = `${cursorCoords.top + 20}px`; // Adjust the offset as needed
 
 	document.body.appendChild(pickerEl);
+	app.keymap.pushScope(pickerScope);
+	document.addEventListener("keydown", handleKeyDownCapture, true);
 
 	const handleClickOutside = (event: MouseEvent) => {
 		if (!pickerEl.contains(event.target as Node)) {
@@ -137,15 +181,29 @@ export function createIconPicker(
 		}
 	};
 
+	let isClosed = false;
 	const closePicker = () => {
+		if (isClosed) {
+			return;
+		}
+
+		isClosed = true;
 		if (pickerEl.parentNode) {
 			document.body.removeChild(pickerEl);
-			document.removeEventListener("click", handleClickOutside);
-			document.removeEventListener("keydown", handleKeyDown);
+		}
+		document.removeEventListener("click", handleClickOutside);
+		document.removeEventListener("keydown", handleKeyDownCapture, true);
+		app.keymap.popScope(pickerScope);
+		if (activePickerClose === closePicker) {
+			activePickerClose = null;
 		}
 	};
 
+	activePickerClose = closePicker;
+
 	setTimeout(() => {
-		document.addEventListener("click", handleClickOutside);
+		if (!isClosed) {
+			document.addEventListener("click", handleClickOutside);
+		}
 	}, 0);
 }
