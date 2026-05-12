@@ -13,6 +13,7 @@ export function createIconPicker(
 	editor: Editor,
 	icons: IconBulletSetting[],
 	customTrigger: string,
+	popupSize: "small" | "medium" | "big",
 	lineNumber: number,
 	lineText: string
 ) {
@@ -23,7 +24,7 @@ export function createIconPicker(
 	}
 
 	const pickerEl = document.createElement("div");
-	pickerEl.className = "icon-picker";
+	pickerEl.className = `icon-picker icon-picker-${popupSize}`;
 
 	let selectedIndex = 0;
 	const numColumns = 4;

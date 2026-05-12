@@ -30,6 +30,14 @@
 }
 
 .icon-picker {
+	--icon-picker-column-width: 116px;
+	--icon-picker-max-width: 600px;
+	--icon-picker-gap-x: 8px;
+	--icon-picker-gap-y: 2px;
+	--icon-picker-item-padding-y: 5px;
+	--icon-picker-item-padding-x: 8px;
+	--icon-picker-font-size: var(--font-ui-small);
+	--icon-picker-svg-size: 1em;
 	position: absolute;
 	background-color: var(--background-primary);
 	border: 1px solid var(--background-modifier-border);
@@ -38,11 +46,38 @@
 	padding: 6px;
 	z-index: 1000;
 	display: grid;
-	grid-template-columns: repeat(4, minmax(132px, 1fr));
-	gap: 2px 12px;
-	max-width: min(680px, calc(100vw - 32px));
+	grid-template-columns: repeat(4, minmax(var(--icon-picker-column-width), 1fr));
+	gap: var(--icon-picker-gap-y) var(--icon-picker-gap-x);
+	max-width: min(var(--icon-picker-max-width), calc(100vw - 32px));
 	max-height: min(420px, calc(100vh - 32px));
 	overflow: auto;
+}
+
+.icon-picker-small {
+	--icon-picker-column-width: 100px;
+	--icon-picker-max-width: 520px;
+	--icon-picker-gap-x: 6px;
+	--icon-picker-item-padding-y: 4px;
+	--icon-picker-item-padding-x: 7px;
+	--icon-picker-font-size: var(--font-ui-smaller);
+	--icon-picker-svg-size: 0.9em;
+}
+
+.icon-picker-medium {
+	--icon-picker-column-width: 116px;
+	--icon-picker-max-width: 600px;
+	--icon-picker-font-size: var(--font-ui-small);
+	--icon-picker-svg-size: 1em;
+}
+
+.icon-picker-big {
+	--icon-picker-column-width: 132px;
+	--icon-picker-max-width: 680px;
+	--icon-picker-gap-x: 12px;
+	--icon-picker-item-padding-y: 6px;
+	--icon-picker-item-padding-x: 10px;
+	--icon-picker-font-size: inherit;
+	--icon-picker-svg-size: 1.05em;
 }
 
 .icon-option {
@@ -52,7 +87,7 @@
 	background: transparent !important;
 	color: var(--text-normal);
 	cursor: pointer;
-	padding: 6px 10px;
+	padding: var(--icon-picker-item-padding-y) var(--icon-picker-item-padding-x);
 	border-radius: 6px;
 	min-width: 0;
 	height: auto;
@@ -61,6 +96,7 @@
 	gap: 10px;
 	text-align: left;
 	font: inherit;
+	font-size: var(--icon-picker-font-size);
 }
 
 .icon-option:hover,
@@ -72,7 +108,7 @@
 }
 
 .icon-picker-svg {
-	--icon-bullet-size: 1.05em;
+	--icon-bullet-size: var(--icon-picker-svg-size);
 }
 
 .icon-picker-label {
@@ -155,6 +191,10 @@
 
 .icon-bullet-setting-status.is-enabled {
 	color: var(--text-accent);
+}
+
+.icon-bullet-setting-status.is-disabled {
+	color: var(--text-error);
 }
 
 .icon-bullet-setting-controls {

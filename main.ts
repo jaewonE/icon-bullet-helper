@@ -26,12 +26,16 @@ import { buildIconBulletPostProcessor } from "postProcessor";
 interface IconBulletPluginSettings {
 	icons: IconBulletSetting[];
 	customTrigger: string;
+	popupSize: PopupSize;
 }
 
 const DEFAULT_SETTINGS: IconBulletPluginSettings = {
 	icons: DEFAULT_ICON_BULLETS,
 	customTrigger: DEFAULT_TRIGGER,
+	popupSize: "medium",
 };
+
+type PopupSize = "small" | "medium" | "big";
 
 export default class IconBulletPlugin extends Plugin {
 	settings: IconBulletPluginSettings;
@@ -99,6 +103,7 @@ export default class IconBulletPlugin extends Plugin {
 			customTrigger: hasNewIconSettings
 				? loaded?.customTrigger ?? DEFAULT_TRIGGER
 				: DEFAULT_TRIGGER,
+			popupSize: normalizePopupSize(loaded?.popupSize),
 			icons: [...defaultIcons, ...customLoadedIcons],
 		};
 	}
@@ -133,6 +138,7 @@ export default class IconBulletPlugin extends Plugin {
 				editor,
 				icons,
 				this.settings.customTrigger,
+				this.settings.popupSize,
 				line,
 				lineText
 			);
@@ -172,6 +178,21 @@ class IconBulletSettingTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
+
+		new Setting(containerEl)
+			.setName("Popup size")
+			.setDesc("Controls picker size, including text and SVG icon size.")
+			.addDropdown((dropdown) =>
+				dropdown
+					.addOption("small", "Small")
+					.addOption("medium", "Medium")
+					.addOption("big", "Big")
+					.setValue(this.plugin.settings.popupSize)
+					.onChange(async (value) => {
+						this.plugin.settings.popupSize = normalizePopupSize(value);
+						await this.plugin.saveSettings();
+					})
+			);
 
 		new Setting(containerEl)
 			.setName("Popup trigger")
@@ -252,10 +273,10 @@ class IconBulletSettingTab extends PluginSettingTab {
 			cls: "icon-bullet-setting-marker",
 			text: isInsertItem(icon) ? icon.insertText ?? "" : `{${icon.marker}}`,
 		});
-		summaryEl.createSpan({
+		const statusEl = summaryEl.createSpan({
 			cls: icon.enabled
 				? "icon-bullet-setting-status is-enabled"
-				: "icon-bullet-setting-status",
+				: "icon-bullet-setting-status is-disabled",
 			text: icon.enabled ? "Enabled" : "Disabled",
 		});
 
@@ -270,24 +291,26 @@ class IconBulletSettingTab extends PluginSettingTab {
 			.addToggle((toggle) =>
 				toggle.setValue(icon.enabled).onChange(async (value) => {
 					icon.enabled = value;
+					updateStatus(statusEl, value);
 					await this.plugin.saveSettings();
-					this.display();
 				})
 			);
 
-		if (!isInsertItem(icon)) {
-			new Setting(controlsEl)
-				.setName("Marker")
-				.addText((text) =>
-					text.setValue(icon.marker).onChange(async (value) => {
-						const marker = normalizeMarker(value);
-						if (isValidMarker(marker)) {
-							icon.marker = marker;
-							await this.plugin.saveSettings();
-						}
-					})
-				);
+		if (isInsertItem(icon)) {
+			return;
 		}
+
+		new Setting(controlsEl)
+			.setName("Marker")
+			.addText((text) =>
+				text.setValue(icon.marker).onChange(async (value) => {
+					const marker = normalizeMarker(value);
+					if (isValidMarker(marker)) {
+						icon.marker = marker;
+						await this.plugin.saveSettings();
+					}
+				})
+			);
 
 		new Setting(controlsEl)
 			.setName("Label")
@@ -298,39 +321,28 @@ class IconBulletSettingTab extends PluginSettingTab {
 				})
 			);
 
-		if (isInsertItem(icon)) {
-			new Setting(controlsEl)
-				.setName("Insert text")
-				.addText((text) =>
-					text.setValue(icon.insertText ?? "").onChange(async (value) => {
-						icon.insertText = value;
-						await this.plugin.saveSettings();
-					})
-				);
-		} else {
-			new Setting(controlsEl)
-				.setName("Color")
-				.addText((text) =>
-					text.setValue(icon.color ?? "").onChange(async (value) => {
-						icon.color = normalizeColor(value);
-						await this.plugin.saveSettings();
-					})
-				);
+		new Setting(controlsEl)
+			.setName("Color")
+			.addText((text) =>
+				text.setValue(icon.color ?? "").onChange(async (value) => {
+					icon.color = normalizeColor(value);
+					await this.plugin.saveSettings();
+				})
+			);
 
-			new Setting(controlsEl)
-				.setName("SVG")
-				.setDesc("Scripts, external resources, event handlers, and unsafe URLs are stripped.")
-				.addTextArea((text) => {
-					text.inputEl.rows = 4;
-					text
-						.setPlaceholder("<svg ...>")
-						.setValue(icon.svg ?? "")
-						.onChange(async (value) => {
-							icon.svg = sanitizeSvg(value);
-							await this.plugin.saveSettings();
-						});
-				});
-		}
+		new Setting(controlsEl)
+			.setName("SVG")
+			.setDesc("Scripts, external resources, event handlers, and unsafe URLs are stripped.")
+			.addTextArea((text) => {
+				text.inputEl.rows = 4;
+				text
+					.setPlaceholder("<svg ...>")
+					.setValue(icon.svg ?? "")
+					.onChange(async (value) => {
+						icon.svg = sanitizeSvg(value);
+						await this.plugin.saveSettings();
+					});
+			});
 
 		new Setting(controlsEl).addButton((button) =>
 			button
@@ -343,4 +355,14 @@ class IconBulletSettingTab extends PluginSettingTab {
 				})
 		);
 	}
+}
+
+function normalizePopupSize(value: unknown): PopupSize {
+	return value === "small" || value === "big" ? value : "medium";
+}
+
+function updateStatus(statusEl: HTMLElement, enabled: boolean) {
+	statusEl.textContent = enabled ? "Enabled" : "Disabled";
+	statusEl.classList.toggle("is-enabled", enabled);
+	statusEl.classList.toggle("is-disabled", !enabled);
 }
