@@ -51,51 +51,50 @@ export const DEFAULT_ICON_BULLETS: IconBulletSetting[] = [
 		<path d="M5 12h14"></path>
 		<path d="m13 6 6 6-6 6"></path>
 	`),
-	defaultIcon("therefore", "Therefore", "#495057", `
-		<circle cx="12" cy="5" r="1.4" fill="currentColor" stroke="none"></circle>
-		<circle cx="7" cy="17" r="1.4" fill="currentColor" stroke="none"></circle>
-		<circle cx="17" cy="17" r="1.4" fill="currentColor" stroke="none"></circle>
+	defaultIcon("therefore", "Therefore", "#b02a2a", `
+		<circle cx="12" cy="5" r="2.65" fill="currentColor" stroke="none"></circle>
+		<circle cx="6.3" cy="17" r="2.65" fill="currentColor" stroke="none"></circle>
+		<circle cx="17.7" cy="17" r="2.65" fill="currentColor" stroke="none"></circle>
 	`),
 	defaultIcon("clip", "Clip", "#5c7cfa", `
 		<path d="m21 8-10 10a5 5 0 0 1-7-7L15 0a3.5 3.5 0 0 1 5 5L9 16a2 2 0 1 1-3-3L16 3"></path>
 	`),
 	defaultIcon("p", "Good", "#2f9e44", `
-		<path d="M7 11v9"></path>
-		<path d="M7 11H4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h3"></path>
-		<path d="M7 11l4-8a2 2 0 0 1 3 2v4h4a2 2 0 0 1 2 2l-1 7a2 2 0 0 1-2 2H7"></path>
+		<path fill="currentColor" stroke="none" d="M2.8 10.2h3.6v10H2.8A1.8 1.8 0 0 1 1 18.4V12a1.8 1.8 0 0 1 1.8-1.8Z"></path>
+		<path fill="currentColor" stroke="none" d="M8 10.1 11.2 3a1.9 1.9 0 0 1 3.6 1.2l-.6 4.2h4.4a2.4 2.4 0 0 1 2.3 3l-1.7 6.5a3 3 0 0 1-2.9 2.3H8Z"></path>
 	`),
 	defaultIcon("c", "Bad", "#e03131", `
-		<path d="M7 13V4"></path>
-		<path d="M7 13H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3"></path>
-		<path d="M7 13l4 8a2 2 0 0 0 3-2v-4h4a2 2 0 0 0 2-2l-1-7a2 2 0 0 0-2-2H7"></path>
+		<path fill="currentColor" stroke="none" d="M2.8 13.8h3.6v-10H2.8A1.8 1.8 0 0 0 1 5.6V12a1.8 1.8 0 0 0 1.8 1.8Z"></path>
+		<path fill="currentColor" stroke="none" d="M8 13.9 11.2 21a1.9 1.9 0 0 0 3.6-1.2l-.6-4.2h4.4a2.4 2.4 0 0 0 2.3-3L19.2 6a3 3 0 0 0-2.9-2.3H8Z"></path>
 	`),
 	defaultIcon("q", "Question", "#e03131", `
-		<path d="M9.5 8.5a3 3 0 1 1 5 2.2c-1.4 1-2.5 1.7-2.5 3.3"></path>
-		<path d="M12 18h.01"></path>
+		<path fill="currentColor" stroke="none" d="M10.1 14.3c0-2.1 1.1-3.1 2.4-4 1.1-.8 2-1.4 2-2.7 0-1.2-1-2-2.5-2-1.4 0-2.4.7-3.1 1.8L5.9 5.8C7 3.6 9.1 2.3 12.2 2.3c3.7 0 6.3 2.1 6.3 5.1 0 2.8-1.9 4.1-3.4 5.1-1 .7-1.6 1.2-1.7 2.2v.7h-3.3Z"></path>
+		<circle cx="11.8" cy="20" r="2.35" fill="currentColor" stroke="none"></circle>
 	`),
 	defaultIcon("important", "Important", "#e03131", `
-		<path d="M12 3v11"></path>
-		<path d="M12 19h.01"></path>
+		<path fill="currentColor" stroke="none" d="M9.4 3h5.2l-.8 12h-3.6Z"></path>
+		<circle cx="12" cy="20" r="2.35" fill="currentColor" stroke="none"></circle>
 	`),
 	defaultIcon("bookmark", "Bookmark", "#fa5252", `
-		<path d="M6 4h12a1 1 0 0 1 1 1v16l-7-4-7 4V5a1 1 0 0 1 1-1Z"></path>
-		<path d="M9 8h6"></path>
+		<path fill="currentColor" stroke="none" d="M6 3h12a1.5 1.5 0 0 1 1.5 1.5V22L12 17.6 4.5 22V4.5A1.5 1.5 0 0 1 6 3Z"></path>
+		<path d="M9 8h6" stroke="var(--background-primary)" stroke-width="2.4"></path>
 	`),
 	defaultIcon("star", "Star", "#fab005", `
-		<path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6-5.4-2.9-5.4 2.9 1-6-4.4-4.3 6.1-.9Z"></path>
+		<path fill="currentColor" stroke="none" d="m12 2.2 3 6.1 6.7 1-4.9 4.7 1.2 6.7-6-3.2-6 3.2 1.2-6.7-4.9-4.7 6.7-1Z"></path>
 	`),
 	defaultIcon("fire", "Fire", "#f76707", `
-		<path d="M8.5 14.5A4.5 4.5 0 0 0 12 22a5.5 5.5 0 0 0 5.5-5.5c0-3-1.7-5.1-3.7-7.1-.3 2.1-1.2 3.4-2.6 4.2.2-2.8-.7-5.4-3-7.6.1 3.2-2.7 5.2-2.7 8.5Z"></path>
+		<path fill="currentColor" stroke="none" d="M12.2 22c-3.9 0-7-2.9-7-6.9 0-2.6 1.4-4.6 3-6.6 1-1.3 1.9-2.5 2-4.4 0-.8.9-1.3 1.6-.8 2.6 1.8 4.2 4.2 4.5 7.1.5-.6.9-1.4 1.1-2.3.2-.9 1.4-1.2 2-.5 1.5 1.8 2.4 4 2.4 6.4 0 4.6-3.5 8-9.6 8Z"></path>
+		<path fill="var(--background-primary)" stroke="none" opacity=".9" d="M12.1 19.5c-2.1 0-3.7-1.6-3.7-3.7 0-1.5.8-2.7 1.7-3.8.8-.9 1.4-1.8 1.5-3.1 1.7 1.3 2.6 2.9 2.7 4.8.8-.3 1.5-1 2-2 1 .9 1.5 2.1 1.5 3.4 0 2.7-2.2 4.4-5.7 4.4Z"></path>
 	`),
 	defaultIcon("up", "Up", "#e03131", `
-		<path d="M4 19h16"></path>
-		<path d="M5 15l5-5 4 3 5-8"></path>
-		<path d="M17 5h2v2"></path>
+		<path d="M4 19h16" stroke-width="3.1"></path>
+		<path d="M5 15l5-5 4 3 5-8" stroke-width="3.1"></path>
+		<path d="M17 5h2v2" stroke-width="3.1"></path>
 	`),
 	defaultIcon("down", "Down", "#1971c2", `
-		<path d="M4 5h16"></path>
-		<path d="M5 9l5 5 4-3 5 8"></path>
-		<path d="M17 19h2v-2"></path>
+		<path d="M4 5h16" stroke-width="3.1"></path>
+		<path d="M5 9l5 5 4-3 5 8" stroke-width="3.1"></path>
+		<path d="M17 19h2v-2" stroke-width="3.1"></path>
 	`),
 	defaultIcon("forwarded", "Forwarded", "#1971c2", `
 		<rect x="3" y="4" width="18" height="16" rx="3"></rect>
@@ -103,52 +102,61 @@ export const DEFAULT_ICON_BULLETS: IconBulletSetting[] = [
 		<path d="m13 8 4 4-4 4"></path>
 	`),
 	defaultIcon("scheduling", "Scheduling", "#c92a2a", `
-		<rect x="4" y="5" width="16" height="15" rx="2"></rect>
-		<path d="M8 3v4"></path>
-		<path d="M16 3v4"></path>
-		<path d="M4 10h16"></path>
-		<path d="M8 14h3"></path>
-		<path d="M8 17h6"></path>
+		<rect x="2.8" y="4.2" width="18.4" height="17" rx="2.8"></rect>
+		<path d="M7.7 2.8v4.1" stroke-width="2.15"></path>
+		<path d="M16.3 2.8v4.1" stroke-width="2.15"></path>
+		<path d="M3.3 9.8h17.4" stroke-width="2.15"></path>
+		<path d="M8 14h3.2" stroke-width="2.05"></path>
+		<path d="M8 17.2h6.5" stroke-width="2.05"></path>
 	`),
 	defaultIcon("i", "Information", "#1971c2", `
-		<rect x="4" y="4" width="16" height="16" rx="4"></rect>
-		<path d="M12 10v6"></path>
-		<path d="M12 7h.01"></path>
+		<rect x="2.8" y="2.8" width="18.4" height="18.4" rx="5" fill="currentColor" stroke="none"></rect>
+		<path d="M12 10v6.6" stroke="var(--background-primary)" stroke-width="2.35"></path>
+		<circle cx="12" cy="7.1" r="1.15" fill="var(--background-primary)" stroke="none"></circle>
 	`),
 	defaultIcon("location", "Location", "#e03131", `
-		<path d="M12 22s7-5.5 7-12a7 7 0 1 0-14 0c0 6.5 7 12 7 12Z"></path>
-		<circle cx="12" cy="10" r="2"></circle>
+		<path fill="currentColor" stroke="none" d="M12 22s7.5-5.8 7.5-12.3a7.5 7.5 0 0 0-15 0C4.5 16.2 12 22 12 22Z"></path>
+		<circle cx="12" cy="9.8" r="2.3" fill="var(--background-primary)" stroke="none"></circle>
 	`),
-	defaultIcon("quote", "Quote", "#495057", `
-		<path d="M8 7h.01"></path>
-		<path d="M12 7h.01"></path>
-		<path d="M8 7v5"></path>
-		<path d="M12 7v5"></path>
+	defaultIcon("quote", "Quote", "#1971c2", `
+		<path fill="currentColor" stroke="none" d="M6.2 18.5c-1.9 0-3.2-1.4-3.2-3.5 0-3.4 2.3-6.9 6.6-9.5l1.5 2.2c-2.1 1.5-3.4 3-3.8 4.7 1.8.2 3 1.4 3 3.1 0 1.7-1.4 3-4.1 3Z"></path>
+		<path fill="currentColor" stroke="none" d="M16.2 18.5c-1.9 0-3.2-1.4-3.2-3.5 0-3.4 2.3-6.9 6.6-9.5l1.5 2.2c-2.1 1.5-3.4 3-3.8 4.7 1.8.2 3 1.4 3 3.1 0 1.7-1.4 3-4.1 3Z"></path>
 	`),
 	defaultIcon("dollar", "Dollar", "#495057", `
 		<path d="M12 2v20"></path>
 		<path d="M17 6.5c-1.2-1-2.9-1.5-5-1.5-3 0-5 1.4-5 3.5 0 4.8 10 2.3 10 7 0 2-2 3.5-5 3.5-2.2 0-4-.7-5.2-1.8"></path>
 	`),
 	defaultIcon("idea", "Idea", "#f59f00", `
-		<path d="M9 18h6"></path>
-		<path d="M10 22h4"></path>
-		<path d="M8.5 14.5a6 6 0 1 1 7 0c-.9.7-1.5 1.8-1.5 3.5h-4c0-1.7-.6-2.8-1.5-3.5Z"></path>
+		<path fill="currentColor" stroke="none" d="M12 2.2a6.7 6.7 0 0 0-4.1 12c1 .8 1.5 1.7 1.7 3.2h4.8c.2-1.5.7-2.5 1.7-3.2A6.7 6.7 0 0 0 12 2.2Z"></path>
+		<path d="M9.5 18.8h5" stroke-width="2.4"></path>
+		<path d="M10.5 21.5h3" stroke-width="2.4"></path>
+		<path d="M9.1 8.2c.6-1.5 1.7-2.5 3.1-2.8" stroke="var(--background-primary)" stroke-width="2.1" opacity=".75"></path>
 	`),
 	defaultIcon("k", "Key", "#fab005", `
-		<circle cx="7.5" cy="14.5" r="3.5"></circle>
-		<path d="M10 12 20 2"></path>
-		<path d="m15 7 3 3"></path>
-		<path d="m17 5 3 3"></path>
+		<circle cx="7.2" cy="16.8" r="4.2" fill="currentColor" stroke="none"></circle>
+		<circle cx="7.2" cy="16.8" r="1.45" fill="var(--background-primary)" stroke="none"></circle>
+		<path d="M10.3 13.7 21 3" stroke-width="4.2"></path>
+		<path d="m16 8 2.7 2.7" stroke-width="3.2"></path>
+		<path d="m18.4 5.6 2.7 2.7" stroke-width="3.2"></path>
 	`),
-	defaultIcon("win", "Win", "#f08c00", `
-		<path d="M4 12h16v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"></path>
-		<path d="M4 12c0-2 1.8-4 4-4h8c2.2 0 4 2 4 4"></path>
-		<path d="M8 8V5"></path>
-		<path d="M12 8V5"></path>
-		<path d="M16 8V5"></path>
-		<path d="M8 5h.01"></path>
-		<path d="M12 5h.01"></path>
-		<path d="M16 5h.01"></path>
+	defaultIcon("win", "Win", "#f76707", `
+		<path fill="#ffd43b" stroke="none" d="M4.2 20.6 8.5 9.2l7.1 7.1Z"></path>
+		<path d="M5.8 16.3 11.3 21" stroke="#f76707" stroke-width="1.9"></path>
+		<path d="M7.2 12.4 14.4 18" stroke="#f76707" stroke-width="1.9"></path>
+		<path d="M4.1 20.5c-1 .1-1.7.6-2 1.4" stroke="#f76707" stroke-width="2.3"></path>
+		<path d="M10.5 10.1c.9-2.2 2.2-3.6 4-4.2" stroke="#12b886" stroke-width="2.3"></path>
+		<path d="M12.6 11.6c2.1-1.2 3.8-1.4 5.5-.7" stroke="#228be6" stroke-width="2.3"></path>
+		<path d="M14.6 14.1c1.8-.4 3.2-.1 4.4.9" stroke="#f76707" stroke-width="2.3"></path>
+		<path d="M13.3 7.6c.8.1 1.4-.2 1.8-.8.5-.7.4-1.5-.1-2.1" stroke="#1971c2" stroke-width="2.1"></path>
+		<path d="M18.1 8.3c.9-.9 1.8-1.2 2.8-.8" stroke="#40c057" stroke-width="2.1"></path>
+		<path d="M18 16.8c.9.3 1.9.1 2.7-.7" stroke="#e03131" stroke-width="2.1"></path>
+		<circle cx="9.3" cy="6.5" r="1" fill="#12b886" stroke="none"></circle>
+		<circle cx="12" cy="3.3" r="1" fill="#ffd43b" stroke="none"></circle>
+		<circle cx="18.7" cy="4.7" r="1.15" fill="#ffd43b" stroke="none"></circle>
+		<circle cx="21" cy="10.4" r="1" fill="#15aabf" stroke="none"></circle>
+		<circle cx="21.4" cy="18.7" r="1" fill="#ffd43b" stroke="none"></circle>
+		<circle cx="16.3" cy="18.9" r=".75" fill="#12b886" stroke="none"></circle>
+		<circle cx="6.3" cy="8.3" r=".75" fill="#15aabf" stroke="none"></circle>
 	`),
 ];
 
@@ -187,7 +195,7 @@ function defaultInsert(
 }
 
 function svgIcon(paths: string): string {
-	return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+	return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.55" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
 }
 
 export function markerToken(marker: string): string {
