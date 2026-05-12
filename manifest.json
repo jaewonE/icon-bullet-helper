@@ -1,11 +1,10 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
-	"version": "1.0.0",
+	"id": "icon-bullet-helper",
+	"name": "Icon Bullet Helper",
+	"version": "0.1.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"description": "Replaces unordered-list marker syntax with theme-independent SVG icon bullets.",
+	"author": "JaewonE",
+	"authorUrl": "https://github.com/jaewonE",
 	"isDesktopOnly": false
 }

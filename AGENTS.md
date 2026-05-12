@@ -1,251 +1,154 @@
-# Obsidian community plugin
+# AGENTS.md
 
-## Project overview
+This repository contains the Obsidian plugin **Icon Bullet Helper**. Treat it as a standalone icon bullet project, not as a checkbox styling helper.
 
-- Target: Obsidian Community Plugin (TypeScript → bundled JavaScript).
-- Entry point: `main.ts` compiled to `main.js` and loaded by Obsidian.
-- Required release artifacts: `main.js`, `manifest.json`, and optional `styles.css`.
+## Project Goal
 
-## Environment & tooling
+Provide theme-independent icon bullets for Obsidian Markdown lists.
 
-- Node.js: use current LTS (Node 18+ recommended).
-- **Package manager: npm** (required for this sample - `package.json` defines npm scripts and dependencies).
-- **Bundler: esbuild** (required for this sample - `esbuild.config.mjs` and build scripts depend on it). Alternative bundlers like Rollup or webpack are acceptable for other projects if they bundle all external dependencies into `main.js`.
-- Types: `obsidian` type definitions.
+The plugin should:
 
-**Note**: This sample project has specific technical dependencies on npm and esbuild. If you're creating a plugin from scratch, you can choose different tools, but you'll need to replace the build configuration accordingly.
+- Preserve Markdown source text.
+- Render `{marker}` syntax as SVG icon bullets in Live Preview and Reading mode.
+- Offer a popup picker that can be opened by command hotkey or by typing the configured trigger after a list marker.
+- Keep popup keyboard navigation isolated from the editor while the popup is open.
+- Avoid dependence on Obsidian theme checkbox styling.
 
-### Install
+## Important Constraints
+
+- Do not reintroduce theme-dependent checkbox CSS as the primary rendering system.
+- Do not rename the plugin ID after release. The intended ID is `icon-bullet-helper`.
+- Do not change or remove `LICENSE` unless the repository owner explicitly asks.
+- Do not commit generated artifacts unless explicitly requested:
+  - `node_modules/`
+  - `main.js`
+  - `build/`
+  - `data.json`
+- Keep the plugin compatible with Obsidian's bundled CodeMirror environment. External runtime dependencies should be bundled or marked external only when Obsidian provides them.
+- The source of truth for icon markers is `default_icons.ts`.
+- The source of truth for popup behavior is `iconPicker.ts`.
+
+## Repository Layout
+
+```text
+.
+├── main.ts                  # Plugin lifecycle, settings, commands, trigger handling
+├── default_icons.ts         # Default icons, insert helpers, validation, sanitization
+├── iconPicker.ts            # Popup picker UI and keyboard/mouse behavior
+├── iconBulletExtension.ts   # Live Preview CodeMirror decorations
+├── postProcessor.ts         # Reading mode Markdown post processor
+├── styles.css               # Rendered icon, popup, and settings styles
+├── manifest.json            # Obsidian plugin manifest
+├── versions.json            # Obsidian min app version map
+├── esbuild.config.mjs       # Bundling configuration
+├── version-bump.mjs         # Obsidian sample version helper
+└── build/                   # Generated release files after npm run build
+```
+
+The project currently uses root-level TypeScript modules. Do not create a new `src/` layout unless the migration is deliberate and all imports/build settings are updated together.
+
+## Common Commands
+
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-### Dev (watch)
+Development watcher:
 
 ```bash
 npm run dev
 ```
 
-### Production build
+Production build:
 
 ```bash
 npm run build
 ```
 
-## Linting
+The build command must:
 
-- To use eslint install eslint from terminal: `npm install -g eslint`
-- To use eslint to analyze this project use this command: `eslint main.ts`
-- eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder: `eslint ./src/`
+1. Type-check with `tsc`.
+2. Bundle `main.ts` into `main.js`.
+3. Copy `main.js`, `manifest.json`, and `styles.css` into `build/`.
 
-## File & folder conventions
+Before handing off substantial changes, run:
 
-- **Organize code into multiple files**: Split functionality across separate modules rather than putting everything in `main.ts`.
-- Source lives in `src/`. Keep `main.ts` small and focused on plugin lifecycle (loading, unloading, registering commands).
-- **Example file structure**:
-  ```
-  src/
-    main.ts           # Plugin entry point, lifecycle management
-    settings.ts       # Settings interface and defaults
-    commands/         # Command implementations
-      command1.ts
-      command2.ts
-    ui/              # UI components, modals, views
-      modal.ts
-      view.ts
-    utils/           # Utility functions, helpers
-      helpers.ts
-      constants.ts
-    types.ts         # TypeScript interfaces and types
-  ```
-- **Do not commit build artifacts**: Never commit `node_modules/`, `main.js`, or other generated files to version control.
-- Keep the plugin small. Avoid large dependencies. Prefer browser-compatible packages.
-- Generated output should be placed at the plugin root or `dist/` depending on your build setup. Release artifacts must end up at the top level of the plugin folder in the vault (`main.js`, `manifest.json`, `styles.css`).
-
-## Manifest rules (`manifest.json`)
-
-- Must include (non-exhaustive):  
-  - `id` (plugin ID; for local dev it should match the folder name)  
-  - `name`  
-  - `version` (Semantic Versioning `x.y.z`)  
-  - `minAppVersion`  
-  - `description`  
-  - `isDesktopOnly` (boolean)  
-  - Optional: `author`, `authorUrl`, `fundingUrl` (string or map)
-- Never change `id` after release. Treat it as stable API.
-- Keep `minAppVersion` accurate when using newer APIs.
-- Canonical requirements are coded here: https://github.com/obsidianmd/obsidian-releases/blob/master/.github/workflows/validate-plugin-entry.yml
-
-## Testing
-
-- Manual install for testing: copy `main.js`, `manifest.json`, `styles.css` (if any) to:
-  ```
-  <Vault>/.obsidian/plugins/<plugin-id>/
-  ```
-- Reload Obsidian and enable the plugin in **Settings → Community plugins**.
-
-## Commands & settings
-
-- Any user-facing commands should be added via `this.addCommand(...)`.
-- If the plugin has configuration, provide a settings tab and sensible defaults.
-- Persist settings using `this.loadData()` / `this.saveData()`.
-- Use stable command IDs; avoid renaming once released.
-
-## Versioning & releases
-
-- Bump `version` in `manifest.json` (SemVer) and update `versions.json` to map plugin version → minimum app version.
-- Create a GitHub release whose tag exactly matches `manifest.json`'s `version`. Do not use a leading `v`.
-- Attach `manifest.json`, `main.js`, and `styles.css` (if present) to the release as individual assets.
-- After the initial release, follow the process to add/update your plugin in the community catalog as required.
-
-## Security, privacy, and compliance
-
-Follow Obsidian's **Developer Policies** and **Plugin Guidelines**. In particular:
-
-- Default to local/offline operation. Only make network requests when essential to the feature.
-- No hidden telemetry. If you collect optional analytics or call third-party services, require explicit opt-in and document clearly in `README.md` and in settings.
-- Never execute remote code, fetch and eval scripts, or auto-update plugin code outside of normal releases.
-- Minimize scope: read/write only what's necessary inside the vault. Do not access files outside the vault.
-- Clearly disclose any external services used, data sent, and risks.
-- Respect user privacy. Do not collect vault contents, filenames, or personal information unless absolutely necessary and explicitly consented.
-- Avoid deceptive patterns, ads, or spammy notifications.
-- Register and clean up all DOM, app, and interval listeners using the provided `register*` helpers so the plugin unloads safely.
-
-## UX & copy guidelines (for UI text, commands, settings)
-
-- Prefer sentence case for headings, buttons, and titles.
-- Use clear, action-oriented imperatives in step-by-step copy.
-- Use **bold** to indicate literal UI labels. Prefer "select" for interactions.
-- Use arrow notation for navigation: **Settings → Community plugins**.
-- Keep in-app strings short, consistent, and free of jargon.
-
-## Performance
-
-- Keep startup light. Defer heavy work until needed.
-- Avoid long-running tasks during `onload`; use lazy initialization.
-- Batch disk access and avoid excessive vault scans.
-- Debounce/throttle expensive operations in response to file system events.
-
-## Coding conventions
-
-- TypeScript with `"strict": true` preferred.
-- **Keep `main.ts` minimal**: Focus only on plugin lifecycle (onload, onunload, addCommand calls). Delegate all feature logic to separate modules.
-- **Split large files**: If any file exceeds ~200-300 lines, consider breaking it into smaller, focused modules.
-- **Use clear module boundaries**: Each file should have a single, well-defined responsibility.
-- Bundle everything into `main.js` (no unbundled runtime deps).
-- Avoid Node/Electron APIs if you want mobile compatibility; set `isDesktopOnly` accordingly.
-- Prefer `async/await` over promise chains; handle errors gracefully.
-
-## Mobile
-
-- Where feasible, test on iOS and Android.
-- Don't assume desktop-only behavior unless `isDesktopOnly` is `true`.
-- Avoid large in-memory structures; be mindful of memory and storage constraints.
-
-## Agent do/don't
-
-**Do**
-- Add commands with stable IDs (don't rename once released).
-- Provide defaults and validation in settings.
-- Write idempotent code paths so reload/unload doesn't leak listeners or intervals.
-- Use `this.register*` helpers for everything that needs cleanup.
-
-**Don't**
-- Introduce network calls without an obvious user-facing reason and documentation.
-- Ship features that require cloud services without clear disclosure and explicit opt-in.
-- Store or transmit vault contents unless essential and consented.
-
-## Common tasks
-
-### Organize code across multiple files
-
-**main.ts** (minimal, lifecycle only):
-```ts
-import { Plugin } from "obsidian";
-import { MySettings, DEFAULT_SETTINGS } from "./settings";
-import { registerCommands } from "./commands";
-
-export default class MyPlugin extends Plugin {
-  settings: MySettings;
-
-  async onload() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-    registerCommands(this);
-  }
-}
+```bash
+npm run build
+git status --short
 ```
 
-**settings.ts**:
-```ts
-export interface MySettings {
-  enabled: boolean;
-  apiKey: string;
-}
+Use `git diff --check` when whitespace-sensitive edits were made.
 
-export const DEFAULT_SETTINGS: MySettings = {
-  enabled: true,
-  apiKey: "",
-};
+## Feature Boundaries
+
+### Picker
+
+The picker must support:
+
+- Hotkey-triggered opening.
+- Trigger-text opening after a Markdown list marker.
+- Arrow key movement inside the popup.
+- `Enter` and `Space` selection.
+- Mouse hover and click selection.
+- Escape/click-away dismissal.
+
+When the picker is open, keyboard events for navigation and selection should be consumed by the popup handler so the editor cursor does not move at the same time.
+
+### Insert Helpers
+
+These entries insert raw Markdown syntax and are not SVG marker entries:
+
+- Number -> `1. `
+- Default -> `- `
+- Unchecked -> `- [ ] `
+- Incomplete -> `- [/] `
+- Checked -> `- [x] `
+
+Settings for these entries should stay limited unless the product direction changes. They currently support enable/disable state only.
+
+### SVG Marker Entries
+
+SVG marker entries render as icon bullets. A marker line has this source shape:
+
+```markdown
+- {marker} Text
 ```
 
-**commands/index.ts**:
-```ts
-import { Plugin } from "obsidian";
-import { doSomething } from "./my-command";
+Rules:
 
-export function registerCommands(plugin: Plugin) {
-  plugin.addCommand({
-    id: "do-something",
-    name: "Do something",
-    callback: () => doSomething(plugin),
-  });
-}
-```
+- Keep marker validation strict enough to avoid ambiguous Markdown behavior.
+- Keep SVG sanitization conservative.
+- Do not allow scripts, event attributes, external image loads, or foreign HTML.
+- Prefer solid, readable SVG shapes over thin outline-only icons.
+- Keep icon colors explicit or Obsidian-theme-variable based.
 
-### Add a command
+### Rendering
 
-```ts
-this.addCommand({
-  id: "your-command-id",
-  name: "Do the thing",
-  callback: () => this.doTheThing(),
-});
-```
+Live Preview rendering belongs in `iconBulletExtension.ts`.
 
-### Persist settings
+Reading mode rendering belongs in `postProcessor.ts`.
 
-```ts
-interface MySettings { enabled: boolean }
-const DEFAULT_SETTINGS: MySettings = { enabled: true };
+Both rendering paths should share normalized icon configuration from `default_icons.ts`. Avoid duplicating marker parsing rules in divergent ways.
 
-async onload() {
-  this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-  await this.saveData(this.settings);
-}
-```
+## Style Guidance
 
-### Register listeners safely
+- Match existing code style: tabs, TypeScript, small helper functions, explicit types where useful.
+- Keep settings UI practical and compact. Use collapsible blocks for long icon configuration.
+- Do not add explanatory text inside the popup; it should remain a picker, not a tutorial.
+- Preserve current popup visual direction: compact rows, icon plus label, hover/focus background, no per-item button border.
+- Make icon changes in SVG definitions, not by relying on theme CSS.
 
-```ts
-this.registerEvent(this.app.workspace.on("file-open", f => { /* ... */ }));
-this.registerDomEvent(window, "resize", () => { /* ... */ });
-this.registerInterval(window.setInterval(() => { /* ... */ }, 1000));
-```
+## Release Notes
 
-## Troubleshooting
+For an Obsidian release, the required files are:
 
-- Plugin doesn't load after build: ensure `main.js` and `manifest.json` are at the top level of the plugin folder under `<Vault>/.obsidian/plugins/<plugin-id>/`. 
-- Build issues: if `main.js` is missing, run `npm run build` or `npm run dev` to compile your TypeScript source code.
-- Commands not appearing: verify `addCommand` runs after `onload` and IDs are unique.
-- Settings not persisting: ensure `loadData`/`saveData` are awaited and you re-render the UI after changes.
-- Mobile-only issues: confirm you're not using desktop-only APIs; check `isDesktopOnly` and adjust.
+- `main.js`
+- `manifest.json`
+- `styles.css`
 
-## References
+The version in `manifest.json`, `package.json`, and `versions.json` should be kept in sync.
 
-- Obsidian sample plugin: https://github.com/obsidianmd/obsidian-sample-plugin
-- API documentation: https://docs.obsidian.md
-- Developer policies: https://docs.obsidian.md/Developer+policies
-- Plugin guidelines: https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines
-- Style guide: https://help.obsidian.md/style-guide
+GitHub release tags for Obsidian plugins should match the plugin version exactly, without a leading `v`.

@@ -1,6 +1,6 @@
 import esbuild from "esbuild";
 import process from "process";
-import { builtinModules } from 'node:module';
+import { builtinModules } from "node:module";
 
 const banner =
 `/*
@@ -15,7 +15,7 @@ const context = await esbuild.context({
 	banner: {
 		js: banner,
 	},
-	entryPoints: ["src/main.ts"],
+	entryPoints: ["main.ts"],
 	bundle: true,
 	external: [
 		"obsidian",

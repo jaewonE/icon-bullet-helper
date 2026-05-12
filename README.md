@@ -1,90 +1,191 @@
-# Obsidian Sample Plugin
+# Icon Bullet Helper
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+Icon Bullet Helper is an Obsidian plugin for writing semantic icon bullets in plain Markdown.
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+The plugin replaces marker syntax such as `- {p}` with an SVG icon in Live Preview and Reading mode. It does not depend on an Obsidian theme, CSS snippets, or checkbox status styling. The Markdown source stays portable and readable.
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open modal (simple)" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
-
-## First time developing plugins?
-
-Quick starting guide for new plugin devs:
-
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
-
-## Releasing new releases
-
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
-
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
-
-## Adding your plugin to the community plugin list
-
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
-
-## How to use
-
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
-
-## Manually installing the plugin
-
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
-
-## Improve code quality with eslint
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- This project already has eslint preconfigured, you can invoke a check by running`npm run lint`
-- Together with a custom eslint [plugin](https://github.com/obsidianmd/eslint-plugin) for Obsidan specific code guidelines.
-- A GitHub action is preconfigured to automatically lint every commit on all branches.
-
-## Funding URL
-
-You can include funding URLs where people who use your plugin can financially support it.
-
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
-
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
+```markdown
+- {p} This worked well.
+- {c} This needs revision.
+- {i} This is background information.
 ```
 
-If you have multiple URLs, you can also do:
+## Why This Exists
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
+The original experiment started as a checkbox styling helper, but the useful behavior is closer to an icon bullet workflow:
+
+- Write ordinary Markdown list lines.
+- Insert a small semantic marker after the list bullet.
+- Render that marker as an icon bullet without rewriting the rest of the line.
+- Use a keyboard and mouse picker to avoid memorizing every marker.
+
+This repository is the clean project home for that icon bullet helper direction.
+
+## Core Behavior
+
+- Opens an icon picker from a command hotkey.
+- Opens the same picker automatically after a list trigger such as `- {`.
+- Supports keyboard selection with arrow keys, `Enter`, and `Space`.
+- Supports mouse hover and click selection.
+- Keeps picker keyboard navigation inside the popup instead of moving the editor cursor at the same time.
+- Renders configured SVG markers in Live Preview through CodeMirror decorations.
+- Renders configured SVG markers in Reading mode through a Markdown post processor.
+- Keeps the underlying Markdown text unchanged after rendering.
+
+## Usage
+
+Press the command hotkey:
+
+- macOS: `Command + ;`
+- Windows/Linux: `Ctrl + ;`
+
+Then select a picker item with the mouse or keyboard.
+
+You can also type the configured trigger after a list marker:
+
+```markdown
+- {
 ```
 
-## API Documentation
+Selecting `Good` converts the current line to:
 
-See https://docs.obsidian.md
+```markdown
+- {p}
+```
+
+The default trigger is `{`, and it can be changed in the plugin settings.
+
+## Supported List Forms
+
+The icon marker renderer currently targets unordered Markdown list markers:
+
+```markdown
+- {p} Dash list
+* {i} Asterisk list
++ {q} Plus list
+```
+
+The picker can also insert compatibility syntax for common Markdown forms:
+
+| Picker item | Inserted text | Rendered as an icon marker |
+| --- | --- | --- |
+| Number | `1. ` | No |
+| Default | `- ` | No |
+| Unchecked | `- [ ] ` | No |
+| Incomplete | `- [/] ` | No |
+| Checked | `- [x] ` | No |
+
+Those entries are insert helpers. They are intentionally not converted into `{marker}` syntax.
+
+## Default SVG Markers
+
+| Marker | Picker label |
+| --- | --- |
+| `{next-step}` | Next step |
+| `{next}` | Next |
+| `{therefore}` | Therefore |
+| `{clip}` | Clip |
+| `{p}` | Good |
+| `{c}` | Bad |
+| `{q}` | Question |
+| `{important}` | Important |
+| `{bookmark}` | Bookmark |
+| `{star}` | Star |
+| `{fire}` | Fire |
+| `{up}` | Up |
+| `{down}` | Down |
+| `{forwarded}` | Forwarded |
+| `{scheduling}` | Scheduling |
+| `{i}` | Information |
+| `{location}` | Location |
+| `{quote}` | Quote |
+| `{dollar}` | Dollar |
+| `{idea}` | Idea |
+| `{k}` | Key |
+| `{win}` | Win |
+
+## Settings
+
+The settings tab includes:
+
+- Popup size: `Small`, `Medium`, or `Big`.
+- Popup trigger text.
+- Enable/disable state for each picker item.
+- Collapsible configuration blocks for marker entries.
+- Label, marker, color, and SVG editing for SVG icon entries.
+- Add custom marker.
+- Restore defaults.
+
+`Number`, `Default`, `Unchecked`, `Incomplete`, and `Checked` are fixed insert helpers. They can be enabled or disabled, but their inserted text is not edited from the settings UI.
+
+Custom SVG input is sanitized before storage and rendering. The sanitizer is intentionally conservative: it keeps SVG markup useful for icons while removing scriptable and externally loaded content.
+
+## Manual Installation
+
+Build the plugin:
+
+```bash
+npm install
+npm run build
+```
+
+Copy the generated release files from `build/` into an Obsidian vault plugin folder:
+
+```text
+<Vault>/.obsidian/plugins/icon-bullet-helper/
+  main.js
+  manifest.json
+  styles.css
+```
+
+Reload Obsidian and enable **Icon Bullet Helper** from **Settings -> Community plugins**.
+
+## Development
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start the esbuild watcher:
+
+```bash
+npm run dev
+```
+
+Run a production build:
+
+```bash
+npm run build
+```
+
+The production build writes the Obsidian release artifacts to both the repository root and `build/`:
+
+- `main.js`
+- `manifest.json`
+- `styles.css`
+
+`main.js` and `build/` are generated artifacts and are ignored by git.
+
+## Architecture
+
+The code is intentionally split by feature boundary:
+
+- `main.ts`: plugin lifecycle, settings tab, command registration, trigger handling.
+- `default_icons.ts`: default marker definitions, insert helpers, SVG creation, validation, normalization, sanitization.
+- `iconPicker.ts`: popup UI, keyboard/mouse interaction, selection insertion.
+- `iconBulletExtension.ts`: Live Preview CodeMirror decorations.
+- `postProcessor.ts`: Reading mode rendering.
+- `styles.css`: popup, settings, and rendered marker styles.
+- `esbuild.config.mjs`: Obsidian-compatible bundle build.
+
+## Current Scope
+
+This is a prototype-grade plugin with a clean repository boundary. The main behavior is usable, but some areas are intentionally not claimed as complete:
+
+- No Dataview-specific rendering integration.
+- No export guarantee for rendered icons.
+- No ordered-list marker replacement beyond the picker insert helper.
+- No task plugin status model integration.
+- No remote services, telemetry, or network behavior.
