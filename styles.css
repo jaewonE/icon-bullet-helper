@@ -1,76 +1,170 @@
-/* styles.css */
-.icon-picker {
-	position: absolute;
-	background-color: white;
-	border: 1px solid #ccc;
-	border-radius: 5px;
-	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-	padding: 10px;
-	z-index: 1000; /* Ensure it appears above other content */
-	display: grid;
-	grid-template-columns: repeat(4, 1fr);
-	gap: 4px;
+.icon-bullet-icon {
+	--icon-bullet-size: 1em;
+	--icon-bullet-color: var(--text-normal);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--icon-bullet-size);
+	height: var(--icon-bullet-size);
+	color: var(--icon-bullet-color);
+	line-height: 1;
+	vertical-align: -0.14em;
+	flex: 0 0 auto;
 }
 
-/* For dark mode */
-@media (prefers-color-scheme: dark) {
-	.icon-picker {
-		background-color: #222;
-		border-color: #444;
-		color: #ddd; /* Default text color */
-		box-shadow: 0 2px 10px rgba(255, 255, 255, 0.01);
-	}
+.icon-bullet-icon svg {
+	width: 100%;
+	height: 100%;
+	stroke: currentColor;
+	color: inherit;
+	pointer-events: none;
+}
 
-	.selected {
-		background-color: #555;
-	}
+.icon-bullet-text-symbol {
+	width: auto;
+	min-width: var(--icon-bullet-size);
+	font-family: var(--font-monospace);
+	font-size: 0.86em;
+	color: var(--text-muted);
+	white-space: pre;
+}
+
+.icon-picker {
+	position: absolute;
+	background-color: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 8px;
+	box-shadow: var(--shadow-s);
+	padding: 6px;
+	z-index: 1000;
+	display: grid;
+	grid-template-columns: repeat(4, minmax(132px, 1fr));
+	gap: 2px 12px;
+	max-width: min(680px, calc(100vw - 32px));
+	max-height: min(420px, calc(100vh - 32px));
+	overflow: auto;
 }
 
 .icon-option {
+	appearance: none;
+	border: none !important;
+	box-shadow: none !important;
+	background: transparent !important;
+	color: var(--text-normal);
 	cursor: pointer;
-	padding: 4px 6px; /* Add padding for better appearance */
-	border-radius: 5px;
-	min-width: 116px;
+	padding: 6px 10px;
+	border-radius: 6px;
+	min-width: 0;
+	height: auto;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	text-align: left;
+	font: inherit;
 }
 
-.setting-icon-option {
-	padding: 4px 6px;
-	border: 1px solid #ccc;
-	border-radius: 5px;
-	min-width: 116px;
-	max-width: 120px;
-	text-align: center;
-	cursor: grab;
-	transition: background-color 0.1s ease-in, background-color 0.5s ease-out;
+.icon-option:hover,
+.icon-option:focus-visible,
+.icon-option.selected {
+	background-color: var(--background-modifier-hover) !important;
+	color: var(--text-normal);
+	outline: none;
 }
 
-.setting-icon-option .icon {
-	margin-right: 6px;
+.icon-picker-svg {
+	--icon-bullet-size: 1.05em;
 }
 
-.icon-option .icon {
-	margin-right: 10px;
+.icon-picker-label {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
-.selected {
-	background-color: #f0f0f0;
+.markdown-preview-view li.icon-bullet-reading {
+	list-style: none;
+	position: relative;
 }
 
-/* For dark mode */
-@media (prefers-color-scheme: dark) {
-	.selected {
-		background-color: #555;
-	}
+.markdown-preview-view li.icon-bullet-reading > .list-bullet {
+	display: none;
 }
 
-.setting-icon-grid {
+.icon-bullet-reading-icon {
+	--icon-bullet-size: 0.95em;
+	position: absolute;
+	left: -1.35em;
+	top: 0.42em;
+}
+
+.markdown-source-view.mod-cm6 .icon-bullet-cm-icon {
+	--icon-bullet-size: 0.95em;
+	margin-right: 0.38em;
+}
+
+.icon-bullet-settings-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin-top: 12px;
+}
+
+.icon-bullet-setting-row {
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	background: var(--background-primary);
+	overflow: hidden;
+}
+
+.icon-bullet-setting-summary {
 	display: grid;
-	align-items: self-end;
-	grid-template-columns: repeat(4, 1fr);
-	gap: 6px;
-	width: 90%;
+	grid-template-columns: 32px minmax(0, 1fr) auto auto;
+	gap: 10px;
+	align-items: center;
+	padding: 10px 12px;
+	cursor: pointer;
+	list-style: none;
 }
 
-.icon-option.hovered {
-	background-color: #f0f0f0;
+.icon-bullet-setting-summary::-webkit-details-marker {
+	display: none;
+}
+
+.icon-bullet-setting-preview {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.icon-bullet-settings-icon {
+	--icon-bullet-size: 22px;
+}
+
+.icon-bullet-setting-title {
+	font-weight: 600;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.icon-bullet-setting-marker,
+.icon-bullet-setting-status {
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+}
+
+.icon-bullet-setting-status.is-enabled {
+	color: var(--text-accent);
+}
+
+.icon-bullet-setting-controls {
+	padding: 0 12px 12px;
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+.icon-bullet-setting-controls textarea {
+	width: 100%;
+	min-height: 84px;
+	font-family: var(--font-monospace);
+	font-size: var(--font-ui-smaller);
 }

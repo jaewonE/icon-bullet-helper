@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-sample-plugin",
-	"version": "1.0.4",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"name": "checkbox-styling-helper",
+	"version": "2.0.0",
+	"description": "Semantic SVG icon bullets for Obsidian unordered lists.",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
@@ -12,6 +12,8 @@
 	"author": "",
 	"license": "MIT",
 	"devDependencies": {
+		"@codemirror/state": "^6.6.0",
+		"@codemirror/view": "^6.42.1",
 		"@types/node": "^16.11.6",
 		"@typescript-eslint/eslint-plugin": "5.29.0",
 		"@typescript-eslint/parser": "5.29.0",

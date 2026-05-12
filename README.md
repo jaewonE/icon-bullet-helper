@@ -1,52 +1,82 @@
-## Checkbox styling helper
+## Icon Bullet Helper
 
-The is a Obsidian plugin that helps you styling checkboxes in preview mode.
+This Obsidian plugin prototype replaces unordered-list bullets with semantic SVG icons without relying on checkbox styling or theme-specific CSS.
 
-If the theme you are using...
+The Markdown source stays readable and portable:
 
-#### Things or Minimal Border theme
+```markdown
+- {p} Fast enough for interactive work.
+- {c} Uses more memory.
+- {i} Works in Live Preview and Reading mode.
+```
 
-Be sure to check to use the [Things theme](https://github.com/colineckert/obsidian-things) or [Minimal theme](https://github.com/kepano/obsidian-minimal) or [Border theme](https://github.com/Akifyss/obsidian-border)in the settings.
-
-#### Else (including default theme)
-
-Be sure to add the CSS of the [ITS theme](https://github.com/SlRvb/Obsidian--ITS-Theme/blob/main/Snippets/S%20-%20Checkboxes.css) to the CSS Snippet.
-
-The styles provided by the [ITS theme](https://publish.obsidian.md/slrvb-docs/ITS+Theme/ITS+Theme) can be found [here](https://publish.obsidian.md/slrvb-docs/ITS+Theme/Alternate+Checkboxes).
+When the plugin is enabled, the `{p}`, `{c}`, and `{i}` markers are rendered as icon bullets. The original Markdown is not rewritten.
 
 ### Usage
 
-Press (`Command + ;` on Mac) (or `Ctrl + ;` on Windows) anywhere to open the icon picker! (The hotkey can be customized in the settings).
+Press `Command + ;` on macOS or `Ctrl + ;` on Windows/Linux to open the icon picker at the cursor. Choose an icon with the mouse, arrow keys, `Enter`, or `Space`.
 
-OR
+You can also type the popup trigger after an unordered-list marker:
 
-Just add `:` to the right of unordered lists or checkboxes! (This can be changed in the settings.)
+```markdown
+- {
+```
 
-You can create a checkbox with the desired icon by clicking with the mouse or selecting the desired icon with the arrow keys and then pressing Spacebar.
+Selecting an icon converts it to:
 
-### Demo video
+```markdown
+- {p}
+```
 
-![Demo video](assets/demo.gif)
+The popup trigger can be changed in the plugin settings.
 
-### Available icons(Things theme)
+### Default picker items
 
-![Available icons_things](assets/available_icons_things.png)
+The picker also includes raw syntax entries that do not render as SVG markers:
 
-### Available icons(Minimal theme)
+| Item | Inserted text |
+|---|---|
+| Number | `1. ` |
+| Default | `- ` |
+| Unchecked | `- [ ] ` |
+| Incomplete | `- [/] ` |
+| Checked | `- [x] ` |
 
-![Available icons_minimal](assets/available_icons_minimal.png)
+SVG icon marker entries:
 
-### Available icons(Else theme)(ITS style)
+| Marker | Meaning |
+|---|---|
+| `{next-step}` | Next step |
+| `{next}` | Next |
+| `{therefore}` | Therefore |
+| `{clip}` | Clip |
+| `{p}` | Good |
+| `{c}` | Bad |
+| `{q}` | Question |
+| `{important}` | Important |
+| `{bookmark}` | Bookmark |
+| `{star}` | Star |
+| `{fire}` | Fire |
+| `{up}` | Up |
+| `{down}` | Down |
+| `{forwarded}` | Forwarded |
+| `{scheduling}` | Scheduling |
+| `{i}` | Information |
+| `{location}` | Location |
+| `{quote}` | Quote |
+| `{dollar}` | Dollar |
+| `{idea}` | Idea |
+| `{k}` | Key |
+| `{win}` | Win |
 
-![Available icons_its](assets/available_icons_its.png)
+### Settings
 
-## We Need Your Help
+The settings tab lets you expand each item only when needed, enable or disable it, edit labels, and edit SVG/color for icon marker entries. SVG input is sanitized before storage and rendering.
 
-This plugin originated from the idea of explicitly writing text by changing the header shape of Markdown's unordered lists into icons. Despite investing a lot of time in development and learning, the plugin was released with some limitations due to my limited skills. The limitations I've identified are as follows:
+### Current prototype scope
 
-1. **Icons do not revert on click**: As the styling is based on checkboxes, clicking an icon results in it being "unchecked," and the designated style disappears. The icons in unordered lists should not be clickable to prevent this.
-2. **Difficulty in adding icons**: The process of adding desired icons is complicated since it uses checkbox styling. It requires basic knowledge of JavaScript and CSS.
-3. **Keyboard not confined to the popup window**: For convenience, icons can be selected using the keyboard. However, the arrow keys move not only within the popped-up icon window but also on the page itself. Like the Tasks plugin, the keyboard should operate only within the popup.
-4. **Cannot select icons using Enter**: Due to issue three, pressing Enter also inserts an Enter (`\n`) on the page, leading to disorganized text.
-
-I seek advice and solutions that can help resolve these issues to create a better plugin that many people will enjoy using. Thank you!
+- Supports unordered lists using `-`, `*`, or `+`.
+- Supports Live Preview through a CodeMirror decoration extension.
+- Supports Reading mode through a Markdown post processor.
+- Keeps shortcut-triggered popup selection behavior from the previous implementation.
+- Does not implement ordered-list replacement, task status integration, Dataview integration, or full export guarantees yet.

@@ -1,13 +1,17 @@
-import { Icon_Item_Setting } from "default_icons";
 import { App, Editor, Scope } from "obsidian";
+import {
+	IconBulletSetting,
+	createIconElement,
+	escapeRegExp,
+	isInsertItem,
+} from "default_icons";
 
 let activePickerClose: (() => void) | null = null;
 
 export function createIconPicker(
 	app: App,
 	editor: Editor,
-	_theme: string,
-	icons: Icon_Item_Setting[],
+	icons: IconBulletSetting[],
 	customTrigger: string,
 	lineNumber: number,
 	lineText: string
@@ -22,75 +26,104 @@ export function createIconPicker(
 	pickerEl.className = "icon-picker";
 
 	let selectedIndex = 0;
-	const numColumns = 4; // Number of columns for the grid
+	const numColumns = 4;
 	const optionEls: HTMLElement[] = [];
 
-	icons.forEach(({ name, icon, value }, index) => {
-		const iconEl = document.createElement("div");
+	icons.forEach((icon, index) => {
+		const iconEl = document.createElement("button");
+		iconEl.type = "button";
 		iconEl.className = "icon-option";
 
-		const iconSpan = document.createElement("span");
-		iconSpan.className = "icon";
-		iconSpan.textContent = icon;
+		iconEl.appendChild(createIconElement(icon, "icon-bullet-icon icon-picker-svg"));
 
 		const nameSpan = document.createElement("span");
-		nameSpan.textContent = name;
-
-		iconEl.appendChild(iconSpan);
+		nameSpan.className = "icon-picker-label";
+		nameSpan.textContent = icon.label;
 		iconEl.appendChild(nameSpan);
 
-		iconEl.tabIndex = 0; // Make the div focusable
 		iconEl.onclick = () => {
-			selectIcon(value);
+			selectIcon(icon);
 		};
 
 		if (index === 0) {
-			iconEl.classList.add("selected"); // Highlight the first option
+			iconEl.classList.add("selected");
 		}
 
 		optionEls.push(iconEl);
 		pickerEl.appendChild(iconEl);
 	});
 
-	function getLeadingSpaces(str: string): string {
-		const match = str.match(/^[>\s]+/);
-
-		return match ? match[0] : "";
-	}
-
-	function checkIsRightTrigger(text: string, customTrigger: string): boolean {
-		const regex = new RegExp(
-			`^(>? ?(- ?(\\[ \\] ?)?|\\d+\\. ?))${customTrigger}$`
+	function getReplacementForLine(
+		text: string,
+		icon: IconBulletSetting
+	): { insertText: string; replaceTo: number } {
+		const leadingMatch = text.match(/^[>\s]*/);
+		const leading = leadingMatch ? leadingMatch[0] : "";
+		const rest = text.slice(leading.length);
+		const trigger = escapeRegExp(customTrigger || "{");
+		const triggerMatch = rest.match(
+			new RegExp(`^((?:[-*+]|\\d+[.)])\\s*)${trigger}\\s*$`)
 		);
-		return regex.test(text);
+
+		const buildInsertText = (listMarker = "-") => {
+			if (isInsertItem(icon)) {
+				return `${leading}${icon.insertText ?? "- "}`;
+			}
+
+			return `${leading}${listMarker} {${icon.marker}} `;
+		};
+
+		if (triggerMatch) {
+			const marker = triggerMatch[1].trim();
+			const listMarker = /^[-*+]$/.test(marker) ? marker : "-";
+
+			return {
+				insertText: buildInsertText(listMarker),
+				replaceTo: text.length,
+			};
+		}
+
+		const listMatch = rest.match(
+			/^((?:[-*+]|\d+[.)])\s+)(?:(?:\{[A-Za-z0-9_-]+\}|\[[^\]]*\])\s*)?/
+		);
+		if (listMatch) {
+			const marker = listMatch[1].trim();
+			const listMarker = /^[-*+]$/.test(marker) ? marker : "-";
+
+			return {
+				insertText: buildInsertText(listMarker),
+				replaceTo: leading.length + listMatch[0].length,
+			};
+		}
+
+		const looseListMatch = rest.match(/^((?:[-*+]|\d+[.)])\s*)/);
+		if (looseListMatch) {
+			const marker = looseListMatch[1].trim();
+			const listMarker = /^[-*+]$/.test(marker) ? marker : "-";
+
+			return {
+				insertText: buildInsertText(listMarker),
+				replaceTo: leading.length + looseListMatch[0].length,
+			};
+		}
+
+		return {
+			insertText: buildInsertText(),
+			replaceTo: leading.length,
+		};
 	}
 
-	function getPrefixLength(text: string): number {
-		const prefixRegex = /^(?:- |\d+\. )(?:\[[^\]]*\] )?/;
-		const match = text.match(prefixRegex);
-		return match ? match[0].length : 0;
-	}
-
-	const selectIcon = (value: string) => {
-		const leadingSpaces = getLeadingSpaces(lineText);
-		const spaceLength = leadingSpaces.length;
-		const lTrimedLineText = lineText.slice(spaceLength);
-		const triggerLength = checkIsRightTrigger(
-			lTrimedLineText,
-			customTrigger
-		)
-			? lTrimedLineText.length
-			: getPrefixLength(lTrimedLineText);
+	const selectIcon = (icon: IconBulletSetting) => {
+		const { insertText, replaceTo } = getReplacementForLine(lineText, icon);
 		editor.replaceRange(
-			`${leadingSpaces}${value}`,
+			insertText,
 			{ line: lineNumber, ch: 0 },
-			{ line: lineNumber, ch: spaceLength + triggerLength }
+			{ line: lineNumber, ch: replaceTo }
 		);
 		closePicker();
 
-		// Move the cursor to the end of the inserted text
 		setTimeout(() => {
-			editor.setCursor(lineNumber, editor.getLine(lineNumber).length);
+			editor.setCursor(lineNumber, insertText.length);
 			editor.focus();
 		}, 0);
 	};
@@ -121,7 +154,7 @@ export function createIconPicker(
 		} else if (key === "ArrowLeft") {
 			moveSelection((selectedIndex - 1 + icons.length) % icons.length);
 		} else if (key === " " || key === "Enter") {
-			selectIcon(icons[selectedIndex].value);
+			selectIcon(icons[selectedIndex]);
 		} else if (key === "Escape") {
 			closePicker();
 		} else {
@@ -133,8 +166,6 @@ export function createIconPicker(
 
 	const withKeyboardCapture = (key: string) => {
 		return (event: KeyboardEvent) => {
-			// Like Obsidian's EditorSuggest, popup navigation owns these keys
-			// while the picker is open. Returning false also prevents default.
 			event.preventDefault();
 			event.stopPropagation();
 			handleKeyboardAction(key);
@@ -163,13 +194,13 @@ export function createIconPicker(
 	pickerScope.register([], " ", withKeyboardCapture(" "));
 	pickerScope.register([], "Escape", withKeyboardCapture("Escape"));
 
-	// @ts-ignore
+	// @ts-ignore Obsidian's public Editor type does not expose the CM6 view.
 	const cursorCoords = editor.cm.coordsAtPos(
 		editor.posToOffset(editor.getCursor())
 	);
 
 	pickerEl.style.left = `${cursorCoords.left}px`;
-	pickerEl.style.top = `${cursorCoords.top + 20}px`; // Adjust the offset as needed
+	pickerEl.style.top = `${cursorCoords.top + 20}px`;
 
 	document.body.appendChild(pickerEl);
 	app.keymap.pushScope(pickerScope);
