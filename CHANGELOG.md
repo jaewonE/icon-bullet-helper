@@ -2,6 +2,16 @@
 
 All notable changes to Icon Bullet Helper are documented here.
 
+## 1.0.1
+
+### Fixed
+
+- Treat rendered icon bullet source markers as a single editable group in Live Preview, including Backspace and Command + Backspace behavior.
+- Apply the configured picker grid column count to the actual picker layout and keyboard navigation.
+- Use "picker" consistently in settings and documentation.
+- Correct project license metadata and documentation to GPL-3.0.
+- Split English and Korean README files and add language navigation links.
+
 ## 1.0.0 - Initial Community Submission
 
 ### Added

@@ -38,9 +38,14 @@ import { buildIconBulletPostProcessor } from "postProcessor";
 interface IconBulletPluginSettings {
 	icons: IconBulletSetting[];
 	customTrigger: string;
-	popupSize: PopupSize;
+	pickerSize: PickerSize;
 	gridColumns: number;
 	gridRows: number;
+}
+
+interface LegacyIconBulletPluginSettings
+	extends Partial<IconBulletPluginSettings> {
+	popupSize?: PickerSize;
 }
 
 const DEFAULT_GRID_COLUMNS = 4;
@@ -50,12 +55,12 @@ const NEW_MARKER_SCROLL_OFFSET = -50;
 const DEFAULT_SETTINGS: IconBulletPluginSettings = {
 	icons: DEFAULT_ICON_BULLETS,
 	customTrigger: DEFAULT_TRIGGER,
-	popupSize: "medium",
+	pickerSize: "medium",
 	gridColumns: DEFAULT_GRID_COLUMNS,
 	gridRows: DEFAULT_GRID_ROWS,
 };
 
-type PopupSize = "small" | "medium" | "big";
+type PickerSize = "small" | "medium" | "big";
 type SettingsSection = "general" | "layout" | "bullets";
 
 export default class IconBulletPlugin extends Plugin {
@@ -131,7 +136,7 @@ export default class IconBulletPlugin extends Plugin {
 
 	async loadSettings() {
 		const loaded = (await this.loadData()) as
-			| Partial<IconBulletPluginSettings>
+			| LegacyIconBulletPluginSettings
 			| undefined;
 		const loadedIcons = loaded?.icons;
 		const hasNewIconSettings =
@@ -163,7 +168,9 @@ export default class IconBulletPlugin extends Plugin {
 			customTrigger: hasNewIconSettings
 				? loaded?.customTrigger ?? DEFAULT_TRIGGER
 				: DEFAULT_TRIGGER,
-			popupSize: normalizePopupSize(loaded?.popupSize),
+			pickerSize: normalizePickerSize(
+				loaded?.pickerSize ?? loaded?.popupSize
+			),
 			gridColumns,
 			gridRows,
 			icons: fitIconsToGridCapacity(icons, gridColumns * gridRows),
@@ -200,7 +207,8 @@ export default class IconBulletPlugin extends Plugin {
 				editor,
 				icons,
 				this.settings.customTrigger,
-				this.settings.popupSize,
+				this.settings.pickerSize,
+				this.settings.gridColumns,
 				line,
 				lineText
 			);
@@ -326,22 +334,22 @@ class IconBulletSettingTab extends PluginSettingTab {
 
 	private renderGeneralSettings(containerEl: HTMLElement) {
 		new Setting(containerEl)
-			.setName("Popup size")
+			.setName("Picker size")
 			.setDesc("Controls picker size, including text and SVG icon size.")
 			.addDropdown((dropdown) =>
 				dropdown
 					.addOption("small", "Small")
 					.addOption("medium", "Medium")
 					.addOption("big", "Big")
-					.setValue(this.plugin.settings.popupSize)
+					.setValue(this.plugin.settings.pickerSize)
 					.onChange(async (value) => {
-						this.plugin.settings.popupSize = normalizePopupSize(value);
+						this.plugin.settings.pickerSize = normalizePickerSize(value);
 						await this.plugin.saveSettings();
 					})
 			);
 
 		new Setting(containerEl)
-			.setName("Popup trigger")
+			.setName("Picker trigger")
 			.setDesc("Type this after a list marker, for example '- !', to open the picker.")
 			.addText((text) =>
 				text
@@ -360,11 +368,11 @@ class IconBulletSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Restore defaults")
-			.setDesc("Restore popup settings, icon layout, and icon bullet definitions to the built-in defaults.")
+			.setDesc("Restore picker settings, icon layout, and icon bullet definitions to the built-in defaults.")
 			.addButton((button) =>
 				button.setButtonText("Restore defaults").onClick(async () => {
 					this.plugin.settings.customTrigger = DEFAULT_TRIGGER;
-					this.plugin.settings.popupSize = DEFAULT_SETTINGS.popupSize;
+					this.plugin.settings.pickerSize = DEFAULT_SETTINGS.pickerSize;
 					this.plugin.settings.icons = normalizeIconBulletSettings(
 						DEFAULT_ICON_BULLETS
 					);
@@ -422,7 +430,7 @@ class IconBulletSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Icon layout")
-			.setDesc("Choose the picker grid size, then drag icons between the grid and disabled area.")
+			.setDesc("Choose the picker grid size as columns x rows, then drag icons between the grid and disabled area.")
 			.addText((text) => {
 				text.inputEl.type = "number";
 				text.inputEl.min = "1";
@@ -928,7 +936,7 @@ class IconBulletSettingTab extends PluginSettingTab {
 	}
 }
 
-function normalizePopupSize(value: unknown): PopupSize {
+function normalizePickerSize(value: unknown): PickerSize {
 	return value === "small" || value === "big" ? value : "medium";
 }
 

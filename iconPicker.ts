@@ -13,6 +13,24 @@ import {
 let activePickerClose: (() => void) | null = null;
 let activePickerSelect: ((variant: IconBulletVariant) => boolean) | null = null;
 
+const PICKER_SIZE_METRICS = {
+	small: {
+		columnWidth: 100,
+		gapX: 6,
+		maxWidth: 520,
+	},
+	medium: {
+		columnWidth: 116,
+		gapX: 8,
+		maxWidth: 600,
+	},
+	big: {
+		columnWidth: 132,
+		gapX: 12,
+		maxWidth: 680,
+	},
+};
+
 export function selectActiveIconPicker(variant: IconBulletVariant): boolean {
 	return activePickerSelect?.(variant) ?? false;
 }
@@ -22,7 +40,8 @@ export function createIconPicker(
 	editor: Editor,
 	icons: IconBulletSetting[],
 	customTrigger: string,
-	popupSize: "small" | "medium" | "big",
+	pickerSize: "small" | "medium" | "big",
+	gridColumns: number,
 	lineNumber: number,
 	lineText: string
 ) {
@@ -33,11 +52,16 @@ export function createIconPicker(
 	}
 
 	const pickerEl = document.createElement("div");
-	pickerEl.className = `icon-picker icon-picker-${popupSize}`;
+	pickerEl.className = `icon-picker icon-picker-${pickerSize}`;
 
 	let selectedIndex = 0;
-	const numColumns = 4;
+	const numColumns = Math.max(1, Math.floor(gridColumns));
 	const optionEls: HTMLElement[] = [];
+	pickerEl.style.setProperty("--icon-picker-columns", String(numColumns));
+	pickerEl.style.setProperty(
+		"--icon-picker-max-width",
+		`${getPickerMaxWidth(pickerSize, numColumns)}px`
+	);
 
 	icons.forEach((icon, index) => {
 		const iconEl = document.createElement("button");
@@ -269,4 +293,14 @@ export function createIconPicker(
 			document.addEventListener("click", handleClickOutside);
 		}
 	}, 0);
+}
+
+function getPickerMaxWidth(
+	pickerSize: "small" | "medium" | "big",
+	numColumns: number
+): number {
+	const metrics = PICKER_SIZE_METRICS[pickerSize];
+	const contentWidth =
+		metrics.columnWidth * numColumns + metrics.gapX * Math.max(0, numColumns - 1);
+	return Math.max(metrics.maxWidth, contentWidth + 12);
 }

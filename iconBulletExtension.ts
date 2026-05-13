@@ -1,4 +1,6 @@
 import {
+	EditorSelection,
+	Extension,
 	RangeSetBuilder,
 	StateEffect,
 	StateField,
@@ -172,7 +174,109 @@ function updateCodeFence(currentFence: string | null, text: string): string | nu
 	return currentFence;
 }
 
-export const iconBulletExtension = ViewPlugin.fromClass(
+interface IconBulletSourceRange {
+	lineFrom: number;
+	groupFrom: number;
+	groupTo: number;
+}
+
+function getIconBulletSourceRange(
+	view: EditorView,
+	position: number
+): IconBulletSourceRange | null {
+	if (!isLivePreviewMode(view)) {
+		return null;
+	}
+
+	const config = view.state.field(iconBulletConfigField);
+	const line = view.state.doc.lineAt(position);
+	const match = config.editorRegex ? line.text.match(config.editorRegex) : null;
+
+	if (!match) {
+		return null;
+	}
+
+	return {
+		lineFrom: line.from,
+		groupFrom: line.from + match[1].length,
+		groupTo: line.from + match[0].length,
+	};
+}
+
+function deleteToLineStartAcrossIconBullet(view: EditorView): boolean {
+	const selection = view.state.selection.main;
+	if (!selection.empty) {
+		return false;
+	}
+
+	const iconRange = getIconBulletSourceRange(view, selection.head);
+	if (!iconRange || selection.head <= iconRange.lineFrom) {
+		return false;
+	}
+
+	const deleteTo =
+		selection.head <= iconRange.groupTo ? iconRange.groupTo : selection.head;
+	if (deleteTo <= iconRange.lineFrom) {
+		return false;
+	}
+
+	view.dispatch({
+		changes: { from: iconRange.lineFrom, to: deleteTo },
+		selection: EditorSelection.cursor(iconRange.lineFrom),
+		scrollIntoView: true,
+		userEvent: "delete.backward",
+	});
+	return true;
+}
+
+function deleteIconBulletGroupBackward(view: EditorView): boolean {
+	const selection = view.state.selection.main;
+	if (!selection.empty) {
+		return false;
+	}
+
+	const iconRange = getIconBulletSourceRange(view, selection.head);
+	if (
+		!iconRange ||
+		selection.head <= iconRange.groupFrom ||
+		selection.head > iconRange.groupTo
+	) {
+		return false;
+	}
+
+	view.dispatch({
+		changes: { from: iconRange.groupFrom, to: iconRange.groupTo },
+		selection: EditorSelection.cursor(iconRange.groupFrom),
+		scrollIntoView: true,
+		userEvent: "delete.backward",
+	});
+	return true;
+}
+
+const iconBulletBackspaceHandler = EditorView.domEventHandlers({
+	keydown(event, view) {
+		if (event.key !== "Backspace") {
+			return false;
+		}
+
+		const handled =
+			event.metaKey && !event.altKey && !event.ctrlKey
+				? deleteToLineStartAcrossIconBullet(view)
+				: !event.metaKey && !event.altKey && !event.ctrlKey
+					? deleteIconBulletGroupBackward(view)
+					: false;
+
+		if (!handled) {
+			return false;
+		}
+
+		event.preventDefault();
+		event.stopPropagation();
+		return true;
+	},
+});
+
+const iconBulletViewPlugin = ViewPlugin.fromClass(
 	class {
 		decorations: DecorationSet;
 		private isLivePreview: boolean;
@@ -201,3 +305,14 @@ export const iconBulletExtension = ViewPlugin.fromClass(
 		decorations: (plugin) => plugin.decorations,
 	}
 );
+
+const iconBulletAtomicRanges = EditorView.atomicRanges.of((view) => {
+	const plugin = view.plugin(iconBulletViewPlugin);
+	return plugin?.decorations ?? Decoration.none;
+});
+
+export const iconBulletExtension: Extension = [
+	iconBulletViewPlugin,
+	iconBulletAtomicRanges,
+	iconBulletBackspaceHandler,
+];

@@ -10,8 +10,8 @@ The plugin should:
 
 - Preserve Markdown source text.
 - Render `{marker}` syntax as SVG icon bullets in Live Preview and Reading mode.
-- Offer a popup picker that can be opened by command hotkey or by typing the configured trigger after a list marker.
-- Keep popup keyboard navigation isolated from the editor while the popup is open.
+- Offer a picker that can be opened by command hotkey or by typing the configured trigger after a list marker.
+- Keep picker keyboard navigation isolated from the editor while the picker is open.
 - Avoid dependence on Obsidian theme checkbox styling.
 
 ## Important Constraints
@@ -26,7 +26,7 @@ The plugin should:
   - `data.json`
 - Keep the plugin compatible with Obsidian's bundled CodeMirror environment. External runtime dependencies should be bundled or marked external only when Obsidian provides them.
 - The source of truth for icon markers is `default_icons.ts`.
-- The source of truth for popup behavior is `iconPicker.ts`.
+- The source of truth for picker behavior is `iconPicker.ts`.
 
 ## Repository Layout
 
@@ -34,10 +34,10 @@ The plugin should:
 .
 ├── main.ts                  # Plugin lifecycle, settings, commands, trigger handling
 ├── default_icons.ts         # Default icons, insert helpers, validation, sanitization
-├── iconPicker.ts            # Popup picker UI and keyboard/mouse behavior
+├── iconPicker.ts            # Picker UI and keyboard/mouse behavior
 ├── iconBulletExtension.ts   # Live Preview CodeMirror decorations
 ├── postProcessor.ts         # Reading mode Markdown post processor
-├── styles.css               # Rendered icon, popup, and settings styles
+├── styles.css               # Rendered icon, picker, and settings styles
 ├── manifest.json            # Obsidian plugin manifest
 ├── versions.json            # Obsidian min app version map
 ├── esbuild.config.mjs       # Bundling configuration
@@ -90,12 +90,12 @@ The picker must support:
 
 - Hotkey-triggered opening.
 - Trigger-text opening after a Markdown list marker.
-- Arrow key movement inside the popup.
+- Arrow key movement inside the picker.
 - `Enter` and `Space` selection.
 - Mouse hover and click selection.
 - Escape/click-away dismissal.
 
-When the picker is open, keyboard events for navigation and selection should be consumed by the popup handler so the editor cursor does not move at the same time.
+When the picker is open, keyboard events for navigation and selection should be consumed by the picker handler so the editor cursor does not move at the same time.
 
 ### Insert Helpers
 
@@ -137,8 +137,8 @@ Both rendering paths should share normalized icon configuration from `default_ic
 
 - Match existing code style: tabs, TypeScript, small helper functions, explicit types where useful.
 - Keep settings UI practical and compact. Use collapsible blocks for long icon configuration.
-- Do not add explanatory text inside the popup; it should remain a picker, not a tutorial.
-- Preserve current popup visual direction: compact rows, icon plus label, hover/focus background, no per-item button border.
+- Do not add explanatory text inside the picker; it should remain a picker, not a tutorial.
+- Preserve current picker visual direction: compact rows, icon plus label, hover/focus background, no per-item button border.
 - Make icon changes in SVG definitions, not by relying on theme CSS.
 
 ## Release Notes

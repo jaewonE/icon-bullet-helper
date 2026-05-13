@@ -6,9 +6,10 @@ Use this checklist when preparing Icon Bullet Helper for Obsidian Community Plug
 
 Keep these files in the repository root before submitting:
 
-- `README.md`: describes what the plugin does and how to use it.
+- `README.md`: describes what the plugin does and how to use it in English.
+- `README.ko.md`: describes what the plugin does and how to use it in Korean.
 - `LICENSE`: defines how the plugin source may be used.
-- `manifest.json`: declares the plugin ID, name, version, author, minimum Obsidian version, description, and desktop-only status.
+- `manifest.json`: declares the plugin ID, name, version, author, minimum Obsidian version, description.
 - `versions.json`: maps plugin versions to the minimum compatible Obsidian version.
 
 ## Version Rules
