@@ -17,7 +17,7 @@ The plugin should:
 ## Important Constraints
 
 - Do not reintroduce theme-dependent checkbox CSS as the primary rendering system.
-- Do not rename the plugin ID after release. The intended ID is `icon-bullet-helper`.
+- Do not rename the plugin ID after release. The intended ID is `checkbox-styling-helper`.
 - Do not change or remove `LICENSE` unless the repository owner explicitly asks.
 - Do not commit generated artifacts unless explicitly requested:
   - `node_modules/`

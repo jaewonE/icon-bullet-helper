@@ -2,6 +2,13 @@
 
 All notable changes to Icon Bullet Helper are documented here.
 
+## 2.0.2
+
+### Fixed
+
+- Restore the Obsidian plugin ID to `checkbox-styling-helper`.
+- Restore manual installation paths to the existing plugin ID directory.
+
 ## 2.0.1
 
 ### Changed
@@ -15,7 +22,7 @@ All notable changes to Icon Bullet Helper are documented here.
 ### Changed
 
 - Replace the legacy checkbox styling implementation with theme-independent SVG icon bullets for Markdown list markers.
-- Keep the existing checkbox-styling-helper repository history while moving the plugin identity to `icon-bullet-helper`.
+- Keep the existing `checkbox-styling-helper` plugin ID while replacing the implementation.
 - Preserve Markdown source text while rendering `{marker}` and `{!marker}` syntax in Live Preview and Reading view.
 
 ## 1.0.1

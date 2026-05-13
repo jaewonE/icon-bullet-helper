@@ -184,7 +184,7 @@ Obsidian Community Plugins directory에 등록된 이후:
 아래 위치에 복사합니다.
 
 ```text
-<Vault>/.obsidian/plugins/icon-bullet-helper/
+<Vault>/.obsidian/plugins/checkbox-styling-helper/
 ```
 
 Obsidian을 reload한 뒤 **Settings -> Community plugins**에서 **Icon Bullet Helper**를 활성화합니다.

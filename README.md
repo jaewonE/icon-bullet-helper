@@ -184,7 +184,7 @@ Download the release assets from the latest GitHub release:
 Copy them into:
 
 ```text
-<Vault>/.obsidian/plugins/icon-bullet-helper/
+<Vault>/.obsidian/plugins/checkbox-styling-helper/
 ```
 
 Then reload Obsidian and enable **Icon Bullet Helper** from **Settings -> Community plugins**.

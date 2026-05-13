@@ -1,6 +1,6 @@
 {
 	"name": "icon-bullet-helper",
-	"version": "2.0.1",
+	"version": "2.0.2",
 	"description": "Theme-independent SVG icon bullets from plain Markdown markers for Obsidian.",
 	"main": "main.js",
 	"type": "module",
