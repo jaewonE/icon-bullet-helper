@@ -45,6 +45,7 @@ interface IconBulletPluginSettings {
 
 const DEFAULT_GRID_COLUMNS = 4;
 const DEFAULT_GRID_ROWS = 1;
+const NEW_MARKER_SCROLL_OFFSET = -50;
 
 const DEFAULT_SETTINGS: IconBulletPluginSettings = {
 	icons: DEFAULT_ICON_BULLETS,
@@ -142,14 +143,12 @@ export default class IconBulletPlugin extends Plugin {
 					typeof icon === "object" && icon !== null && "marker" in icon
 			);
 		const defaultIcons = normalizeIconBulletSettings(DEFAULT_ICON_BULLETS);
-		const defaultMarkers = new Set(defaultIcons.map((icon) => icon.marker));
-		const customLoadedIcons = hasNewIconSettings
-			? normalizeIconBulletSettings(loadedIcons).filter(
-					(icon) => icon.custom || !defaultMarkers.has(icon.marker)
-				)
+		const loadedIconSettings = hasNewIconSettings
+			? normalizeIconBulletSettings(loadedIcons)
 			: [];
-
-		const icons = [...defaultIcons, ...customLoadedIcons];
+		const icons = hasNewIconSettings
+			? mergeLoadedIconsWithDefaults(loadedIconSettings, defaultIcons)
+			: defaultIcons;
 		if (!icons.some((icon) => icon.enabled) && icons[0]) {
 			icons[0].enabled = true;
 		}
@@ -274,6 +273,8 @@ export default class IconBulletPlugin extends Plugin {
 class IconBulletSettingTab extends PluginSettingTab {
 	plugin: IconBulletPlugin;
 	private activeSection: SettingsSection = "general";
+	private pendingOpenMarker: string | null = null;
+	private pendingScrollMarker: string | null = null;
 
 	constructor(app: App, plugin: IconBulletPlugin) {
 		super(app, plugin);
@@ -362,30 +363,14 @@ class IconBulletSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Picker selection shortcuts")
 			.setDesc("Space inserts a common marker like '{p}'. Enter inserts a callout marker like '{!p}'. Command + . toggles the current icon bullet between both forms. To add more shortcuts, assign hotkeys to the picker or toggle commands in Obsidian Hotkeys.");
-	}
 
-	private renderIconBulletsSettings(containerEl: HTMLElement) {
 		new Setting(containerEl)
-			.setName("Icon bullets")
-			.setDesc("Markers are written as '- {marker} text' or '- {!marker} text'. SVG is rendered only by the plugin; the Markdown source stays unchanged.")
-			.addButton((button) =>
-				button.setButtonText("Add marker").onClick(async () => {
-					this.plugin.settings.icons.push({
-						kind: "icon",
-						marker: "new",
-						label: "New marker",
-						color: "#5c7cfa",
-						svg: sanitizeSvg(NEW_MARKER_DEFAULT_SVG),
-						enabled: true,
-						custom: true,
-					});
-					this.expandGridToFitEnabled();
-					await this.plugin.saveSettings();
-					this.display();
-				})
-			)
+			.setName("Restore defaults")
+			.setDesc("Restore popup settings, icon layout, and icon bullet definitions to the built-in defaults.")
 			.addButton((button) =>
 				button.setButtonText("Restore defaults").onClick(async () => {
+					this.plugin.settings.customTrigger = DEFAULT_TRIGGER;
+					this.plugin.settings.popupSize = DEFAULT_SETTINGS.popupSize;
 					this.plugin.settings.icons = normalizeIconBulletSettings(
 						DEFAULT_ICON_BULLETS
 					);
@@ -394,6 +379,36 @@ class IconBulletSettingTab extends PluginSettingTab {
 					this.display();
 				})
 			);
+	}
+
+	private renderIconBulletsSettings(containerEl: HTMLElement) {
+		new Setting(containerEl)
+			.setName("Icon bullets")
+			.setDesc("Markers are written as '- {marker} text' or '- {!marker} text'. SVG is rendered only by the plugin; the Markdown source stays unchanged.")
+			.addButton((button) =>
+				button.setButtonText("Add marker").onClick(async () => {
+					const marker = this.getNextNewMarker();
+					this.plugin.settings.icons.push({
+						kind: "icon",
+						marker,
+						label: "New marker",
+						color: "#5c7cfa",
+						svg: sanitizeSvg(NEW_MARKER_DEFAULT_SVG),
+						enabled: true,
+						custom: true,
+					});
+					this.expandGridToFitEnabled();
+					this.pendingOpenMarker = marker;
+					this.pendingScrollMarker = marker;
+					await this.plugin.saveSettings();
+					this.display();
+				})
+			);
+
+		containerEl.createDiv({
+			cls: "icon-bullet-setting-warning",
+			text: "Some SVGs use hard-coded fill or stroke colors. Changing Color only affects SVG parts that use currentColor.",
+		});
 
 		const iconListEl = containerEl.createDiv({
 			cls: "icon-bullet-settings-list",
@@ -469,14 +484,7 @@ class IconBulletSettingTab extends PluginSettingTab {
 						void applyGridSizeChange();
 					}
 				});
-			})
-			.addButton((button) =>
-				button.setButtonText("위치 초기화").onClick(async () => {
-					this.resetGridShape();
-					await this.plugin.saveSettings();
-					this.display();
-				})
-			);
+			});
 
 		const layoutEl = containerEl.createDiv({ cls: "icon-bullet-layout" });
 		const gridEl = layoutEl.createDiv({ cls: "icon-bullet-layout-grid" });
@@ -713,6 +721,17 @@ class IconBulletSettingTab extends PluginSettingTab {
 		const rowEl = containerEl.createEl("details", {
 			cls: "icon-bullet-setting-row",
 		});
+		if (this.pendingOpenMarker === icon.marker) {
+			rowEl.open = true;
+			this.pendingOpenMarker = null;
+		}
+		if (this.pendingScrollMarker === icon.marker) {
+			this.pendingScrollMarker = null;
+			setTimeout(() => {
+				scrollElementIntoViewWithOffset(rowEl, NEW_MARKER_SCROLL_OFFSET);
+			}, 0);
+		}
+
 		const summaryEl = rowEl.createEl("summary", {
 			cls: "icon-bullet-setting-summary",
 		});
@@ -768,46 +787,72 @@ class IconBulletSettingTab extends PluginSettingTab {
 
 		new Setting(controlsEl)
 			.setName("Marker")
-			.addText((text) =>
-				text.setValue(icon.marker).onChange(async (value) => {
+			.addText((text) => {
+				text.setValue(icon.marker);
+				this.registerCommitText(text.inputEl, async (value) => {
 					const marker = normalizeMarker(value);
-					if (isValidMarker(marker)) {
-						icon.marker = marker;
-						await this.plugin.saveSettings();
+					if (!isValidMarker(marker)) {
+						text.setValue(icon.marker);
+						new Notice("Marker must resolve to 1-32 letters, numbers, underscores, or hyphens.");
+						return;
 					}
-				})
-			);
+
+					if (
+						marker !== icon.marker &&
+						this.plugin.settings.icons.some(
+							(candidate) => candidate !== icon && candidate.marker === marker
+						)
+					) {
+						text.setValue(icon.marker);
+						new Notice("Marker already exists.");
+						return;
+					}
+
+					icon.marker = marker;
+					this.pendingOpenMarker = marker;
+					await this.plugin.saveSettings();
+					this.display();
+				});
+			});
 
 		new Setting(controlsEl)
 			.setName("Label")
-			.addText((text) =>
-				text.setValue(icon.label).onChange(async (value) => {
+			.addText((text) => {
+				text.setValue(icon.label);
+				this.registerCommitText(text.inputEl, async (value) => {
 					icon.label = value.trim() || icon.marker;
+					this.pendingOpenMarker = icon.marker;
 					await this.plugin.saveSettings();
-				})
-			);
+					this.display();
+				});
+			});
 
 		new Setting(controlsEl)
 			.setName("Color")
-			.addText((text) =>
-				text.setValue(icon.color ?? "").onChange(async (value) => {
+			.addText((text) => {
+				text.setValue(icon.color ?? "");
+				this.registerCommitText(text.inputEl, async (value) => {
 					icon.color = normalizeColor(value);
+					this.pendingOpenMarker = icon.marker;
 					await this.plugin.saveSettings();
-				})
-			);
+					this.display();
+				});
+			});
 
 		new Setting(controlsEl)
 			.setName("Callout background")
 			.setDesc("Optional solid background color for callout markers. Leave empty to derive it from the icon color.")
-			.addText((text) =>
+			.addText((text) => {
 				text
 					.setPlaceholder("Uses icon color")
-					.setValue(icon.calloutBackgroundColor ?? "")
-					.onChange(async (value) => {
-						icon.calloutBackgroundColor = normalizeSolidColor(value);
-						await this.plugin.saveSettings();
-					})
-			);
+					.setValue(icon.calloutBackgroundColor ?? "");
+				this.registerCommitText(text.inputEl, async (value) => {
+					icon.calloutBackgroundColor = normalizeSolidColor(value);
+					this.pendingOpenMarker = icon.marker;
+					await this.plugin.saveSettings();
+					this.display();
+				});
+			});
 
 		new Setting(controlsEl)
 			.setName("SVG")
@@ -816,11 +861,13 @@ class IconBulletSettingTab extends PluginSettingTab {
 				text.inputEl.rows = 4;
 				text
 					.setPlaceholder("<svg ...>")
-					.setValue(icon.svg ?? "")
-					.onChange(async (value) => {
-						icon.svg = sanitizeSvg(value);
-						await this.plugin.saveSettings();
-					});
+					.setValue(icon.svg ?? "");
+				this.registerCommitText(text.inputEl, async (value) => {
+					icon.svg = sanitizeSvg(value);
+					this.pendingOpenMarker = icon.marker;
+					await this.plugin.saveSettings();
+					this.display();
+				});
 			});
 
 		new Setting(controlsEl).addButton((button) =>
@@ -834,10 +881,72 @@ class IconBulletSettingTab extends PluginSettingTab {
 				})
 		);
 	}
+
+	private registerCommitText(
+		inputEl: HTMLInputElement | HTMLTextAreaElement,
+		onCommit: (value: string) => Promise<void>
+	) {
+		let lastCommittedValue = inputEl.value;
+		let isCommitting = false;
+
+		const commit = async () => {
+			const value = inputEl.value;
+			if (isCommitting || value === lastCommittedValue) {
+				return;
+			}
+
+			isCommitting = true;
+			const scrollParent = getScrollParent(inputEl);
+			const scrollTop = scrollParent.scrollTop;
+			try {
+				await onCommit(value);
+			} finally {
+				lastCommittedValue = inputEl.value;
+				isCommitting = false;
+				setTimeout(() => {
+					scrollParent.scrollTop = scrollTop;
+				}, 0);
+			}
+		};
+
+		inputEl.addEventListener("blur", () => {
+			void commit();
+		});
+		inputEl.addEventListener("keydown", (event: KeyboardEvent) => {
+			if (event.key === "Enter" && !(inputEl instanceof HTMLTextAreaElement)) {
+				event.preventDefault();
+				inputEl.blur();
+			}
+		});
+	}
+
+	private getNextNewMarker(): string {
+		const markers = new Set(this.plugin.settings.icons.map((icon) => icon.marker));
+		let marker = "new";
+		let suffix = 2;
+
+		while (markers.has(marker)) {
+			marker = `new-${suffix}`;
+			suffix++;
+		}
+
+		return marker;
+	}
 }
 
 function normalizePopupSize(value: unknown): PopupSize {
 	return value === "small" || value === "big" ? value : "medium";
+}
+
+function mergeLoadedIconsWithDefaults(
+	loadedIcons: IconBulletSetting[],
+	defaultIcons: IconBulletSetting[]
+): IconBulletSetting[] {
+	const loadedMarkers = new Set(loadedIcons.map((icon) => icon.marker));
+	const missingDefaults = defaultIcons.filter(
+		(icon) => !loadedMarkers.has(icon.marker)
+	);
+	return [...loadedIcons, ...missingDefaults];
 }
 
 function normalizeGridSize(value: unknown, fallback: number): number {
@@ -887,6 +996,37 @@ function getDraggedMarker(event: DragEvent): string {
 		event.dataTransfer?.getData("text/plain") ||
 		""
 	);
+}
+
+function scrollElementIntoViewWithOffset(element: HTMLElement, offset: number) {
+	const scrollParent = getScrollParent(element);
+	const elementRect = element.getBoundingClientRect();
+	const parentRect = scrollParent.getBoundingClientRect();
+	const targetTop =
+		scrollParent.scrollTop + elementRect.bottom - parentRect.bottom + offset;
+
+	scrollParent.scrollTo({
+		top: Math.max(0, targetTop),
+		behavior: "smooth",
+	});
+}
+
+function getScrollParent(element: HTMLElement): HTMLElement {
+	let current = element.parentElement;
+
+	while (current) {
+		const style = getComputedStyle(current);
+		if (
+			/(auto|scroll)/.test(`${style.overflow}${style.overflowY}`) &&
+			current.scrollHeight > current.clientHeight
+		) {
+			return current;
+		}
+
+		current = current.parentElement;
+	}
+
+	return document.documentElement;
 }
 
 function updateStatus(statusEl: HTMLElement, enabled: boolean) {

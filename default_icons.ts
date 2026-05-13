@@ -226,7 +226,11 @@ export function syntaxForMarker(
 }
 
 export function normalizeMarker(marker: string): string {
-	return marker.replace(/[{}]/g, "").trim().replace(/^!/, "");
+	return marker
+		.replace(/[{}]/g, "")
+		.trim()
+		.replace(/^!/, "")
+		.replace(/\s+/g, "-");
 }
 
 export function isValidMarker(marker: string): boolean {

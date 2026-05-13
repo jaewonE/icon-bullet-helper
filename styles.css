@@ -226,6 +226,17 @@
 	min-width: 0;
 }
 
+.icon-bullet-setting-warning {
+	margin: 10px 0 12px;
+	padding: 9px 10px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	background: var(--background-secondary);
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	line-height: 1.4;
+}
+
 .icon-bullet-settings-list {
 	display: flex;
 	flex-direction: column;
