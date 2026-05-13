@@ -55,6 +55,7 @@ const DEFAULT_SETTINGS: IconBulletPluginSettings = {
 };
 
 type PopupSize = "small" | "medium" | "big";
+type SettingsSection = "general" | "layout" | "bullets";
 
 export default class IconBulletPlugin extends Plugin {
 	settings: IconBulletPluginSettings;
@@ -272,6 +273,7 @@ export default class IconBulletPlugin extends Plugin {
 
 class IconBulletSettingTab extends PluginSettingTab {
 	plugin: IconBulletPlugin;
+	private activeSection: SettingsSection = "general";
 
 	constructor(app: App, plugin: IconBulletPlugin) {
 		super(app, plugin);
@@ -282,6 +284,52 @@ class IconBulletSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
+		this.renderSettingsTabs(containerEl);
+
+		const sectionEl = containerEl.createDiv({
+			cls: "icon-bullet-settings-section",
+		});
+
+		if (this.activeSection === "general") {
+			this.renderGeneralSettings(sectionEl);
+		} else if (this.activeSection === "layout") {
+			this.renderIconLayoutSetting(sectionEl);
+		} else {
+			this.renderIconBulletsSettings(sectionEl);
+		}
+	}
+
+	private renderSettingsTabs(containerEl: HTMLElement) {
+		const tabsEl = containerEl.createDiv({ cls: "icon-bullet-settings-tabs" });
+		const sections: { id: SettingsSection; label: string }[] = [
+			{ id: "general", label: "General" },
+			{ id: "layout", label: "Icon Layout" },
+			{ id: "bullets", label: "Icon Bullets" },
+		];
+
+		sections.forEach((section) => {
+			const tabEl = tabsEl.createEl("button", {
+				cls: "icon-bullet-settings-tab",
+				text: section.label,
+			});
+			tabEl.type = "button";
+			tabEl.setAttribute(
+				"aria-selected",
+				String(this.activeSection === section.id)
+			);
+			tabEl.toggleClass("is-active", this.activeSection === section.id);
+			tabEl.addEventListener("click", () => {
+				if (this.activeSection === section.id) {
+					return;
+				}
+
+				this.activeSection = section.id;
+				this.display();
+			});
+		});
+	}
+
+	private renderGeneralSettings(containerEl: HTMLElement) {
 		new Setting(containerEl)
 			.setName("Popup size")
 			.setDesc("Controls picker size, including text and SVG icon size.")
@@ -314,9 +362,9 @@ class IconBulletSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Picker selection shortcuts")
 			.setDesc("Space inserts a common marker like '{p}'. Enter inserts a callout marker like '{!p}'. Command + . toggles the current icon bullet between both forms. To add more shortcuts, assign hotkeys to the picker or toggle commands in Obsidian Hotkeys.");
+	}
 
-		this.renderIconLayoutSetting(containerEl);
-
+	private renderIconBulletsSettings(containerEl: HTMLElement) {
 		new Setting(containerEl)
 			.setName("Icon bullets")
 			.setDesc("Markers are written as '- {marker} text' or '- {!marker} text'. SVG is rendered only by the plugin; the Markdown source stays unchanged.")

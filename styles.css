@@ -182,6 +182,50 @@
 	margin-right: 0.38em;
 }
 
+.icon-bullet-settings-tabs {
+	display: flex;
+	align-items: flex-end;
+	gap: 2px;
+	margin: 4px 0 14px;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.icon-bullet-settings-tab {
+	appearance: none;
+	border: 1px solid transparent;
+	border-bottom: none;
+	border-radius: 7px 7px 0 0;
+	background: transparent;
+	color: var(--text-muted);
+	cursor: pointer;
+	padding: 8px 14px;
+	font: inherit;
+	font-size: var(--font-ui-small);
+	font-weight: 600;
+	line-height: 1.2;
+	margin-bottom: -1px;
+}
+
+.icon-bullet-settings-tab:hover {
+	background: var(--background-modifier-hover);
+	color: var(--text-normal);
+}
+
+.icon-bullet-settings-tab.is-active {
+	background: var(--background-primary);
+	border-color: var(--background-modifier-border);
+	color: var(--text-normal);
+}
+
+.icon-bullet-settings-tab:focus-visible {
+	outline: 2px solid var(--background-modifier-border-focus);
+	outline-offset: -2px;
+}
+
+.icon-bullet-settings-section {
+	min-width: 0;
+}
+
 .icon-bullet-settings-list {
 	display: flex;
 	flex-direction: column;
