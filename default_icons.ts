@@ -242,6 +242,14 @@ export function normalizeColor(color: string | undefined): string {
 	return "var(--text-normal)";
 }
 
+export function getDarkModeIconColor(color: string | undefined): string {
+	const iconColor = normalizeColor(color);
+	return (
+		hexToReadableDarkColor(iconColor) ??
+		`color-mix(in srgb, ${iconColor} 58%, white)`
+	);
+}
+
 export function normalizeSolidColor(
 	color: string | undefined
 ): string | undefined {
@@ -269,7 +277,7 @@ export function normalizeSolidColor(
 }
 
 export function getCalloutBackgroundColor(icon: IconBulletSetting): string {
-	const explicitColor = normalizeSolidColor(icon.calloutBackgroundColor);
+	const explicitColor = getCalloutBaseColor(icon);
 	if (explicitColor) {
 		return explicitColor;
 	}
@@ -281,8 +289,21 @@ export function getCalloutBackgroundColor(icon: IconBulletSetting): string {
 	);
 }
 
+export function getDarkModeCalloutBackgroundColor(
+	icon: IconBulletSetting
+): string {
+	const baseColor = getCalloutBaseColor(icon) ?? normalizeColor(icon.color);
+	return (
+		hexToReadableDarkRgba(baseColor, 0.24) ??
+		`color-mix(in srgb, ${baseColor} 28%, transparent)`
+	);
+}
+
 export function iconBulletCalloutStyle(icon: IconBulletSetting): string {
-	return `--icon-bullet-callout-background: ${getCalloutBackgroundColor(icon)};`;
+	return [
+		`--icon-bullet-callout-background-light: ${getCalloutBackgroundColor(icon)};`,
+		`--icon-bullet-callout-background-dark: ${getDarkModeCalloutBackgroundColor(icon)};`,
+	].join(" ");
 }
 
 export function applyIconBulletCalloutStyle(
@@ -290,12 +311,78 @@ export function applyIconBulletCalloutStyle(
 	icon: IconBulletSetting
 ) {
 	element.style.setProperty(
-		"--icon-bullet-callout-background",
+		"--icon-bullet-callout-background-light",
 		getCalloutBackgroundColor(icon)
+	);
+	element.style.setProperty(
+		"--icon-bullet-callout-background-dark",
+		getDarkModeCalloutBackgroundColor(icon)
 	);
 }
 
-function hexToRgba(color: string, alpha: number): string | null {
+function getCalloutBaseColor(icon: IconBulletSetting): string | undefined {
+	return normalizeSolidColor(icon.calloutBackgroundColor);
+}
+
+function hexToReadableDarkColor(color: string): string | null {
+	const parsed = parseReadableDarkHexColor(color);
+	if (!parsed) {
+		return null;
+	}
+
+	return parsed.alpha === undefined
+		? `rgb(${parsed.red}, ${parsed.green}, ${parsed.blue})`
+		: `rgba(${parsed.red}, ${parsed.green}, ${parsed.blue}, ${parsed.alpha})`;
+}
+
+function hexToReadableDarkRgba(color: string, alpha: number): string | null {
+	const parsed = parseReadableDarkHexColor(color);
+	if (!parsed) {
+		return null;
+	}
+
+	return `rgba(${parsed.red}, ${parsed.green}, ${parsed.blue}, ${
+		parsed.alpha ?? alpha
+	})`;
+}
+
+function parseReadableDarkHexColor(
+	color: string
+): { red: number; green: number; blue: number; alpha?: number } | null {
+	const parsed = parseHexColor(color);
+	if (!parsed) {
+		return null;
+	}
+
+	const luminance = relativeLuminance(parsed.red, parsed.green, parsed.blue);
+	const whiteMix = luminance < 0.35 ? 0.48 : luminance < 0.6 ? 0.32 : 0.12;
+
+	return {
+		red: mixChannelWithWhite(parsed.red, whiteMix),
+		green: mixChannelWithWhite(parsed.green, whiteMix),
+		blue: mixChannelWithWhite(parsed.blue, whiteMix),
+		alpha: parsed.alpha,
+	};
+}
+
+function mixChannelWithWhite(channel: number, amount: number): number {
+	return Math.round(channel + (255 - channel) * amount);
+}
+
+function relativeLuminance(red: number, green: number, blue: number): number {
+	const [r, g, b] = [red, green, blue].map((channel) => {
+		const value = channel / 255;
+		return value <= 0.03928
+			? value / 12.92
+			: Math.pow((value + 0.055) / 1.055, 2.4);
+	});
+
+	return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function parseHexColor(
+	color: string
+): { red: number; green: number; blue: number; alpha?: number } | null {
 	const match = color.match(
 		/^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i
 	);
@@ -311,15 +398,26 @@ function hexToRgba(color: string, alpha: number): string | null {
 			.join("");
 	}
 
-	const red = parseInt(hex.slice(0, 2), 16);
-	const green = parseInt(hex.slice(2, 4), 16);
-	const blue = parseInt(hex.slice(4, 6), 16);
-	const alphaValue =
-		hex.length === 8
-			? Number((parseInt(hex.slice(6, 8), 16) / 255).toFixed(3))
-			: alpha;
+	return {
+		red: parseInt(hex.slice(0, 2), 16),
+		green: parseInt(hex.slice(2, 4), 16),
+		blue: parseInt(hex.slice(4, 6), 16),
+		alpha:
+			hex.length === 8
+				? Number((parseInt(hex.slice(6, 8), 16) / 255).toFixed(3))
+				: undefined,
+	};
+}
 
-	return `rgba(${red}, ${green}, ${blue}, ${alphaValue})`;
+function hexToRgba(color: string, alpha: number): string | null {
+	const parsed = parseHexColor(color);
+	if (!parsed) {
+		return null;
+	}
+
+	return `rgba(${parsed.red}, ${parsed.green}, ${parsed.blue}, ${
+		parsed.alpha ?? alpha
+	})`;
 }
 
 export function sanitizeSvg(svg: string | undefined): string {
@@ -498,9 +596,14 @@ export function createIconElement(
 
 	if (isInsertItem(icon)) {
 		if (icon.displaySvg) {
+			const displayColor = normalizeColor(icon.displayColor);
 			element.style.setProperty(
 				"--icon-bullet-color",
-				normalizeColor(icon.displayColor)
+				displayColor
+			);
+			element.style.setProperty(
+				"--icon-bullet-color-dark",
+				getDarkModeIconColor(displayColor)
 			);
 			element.innerHTML = sanitizeSvg(icon.displaySvg);
 			return element;
@@ -512,6 +615,10 @@ export function createIconElement(
 	}
 
 	element.style.setProperty("--icon-bullet-color", normalizeColor(icon.color));
+	element.style.setProperty(
+		"--icon-bullet-color-dark",
+		getDarkModeIconColor(icon.color)
+	);
 	element.innerHTML = sanitizeSvg(icon.svg);
 	return element;
 }

@@ -1,6 +1,7 @@
 .icon-bullet-icon {
 	--icon-bullet-size: 1em;
 	--icon-bullet-color: var(--text-normal);
+	--icon-bullet-color-dark: var(--icon-bullet-color);
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -10,6 +11,10 @@
 	line-height: 1;
 	vertical-align: -0.14em;
 	flex: 0 0 auto;
+}
+
+.theme-dark .icon-bullet-icon {
+	color: var(--icon-bullet-color-dark);
 }
 
 .icon-bullet-icon svg {
@@ -118,12 +123,19 @@
 }
 
 .icon-bullet-callout {
-	--icon-bullet-callout-background: rgba(127, 127, 127, 0.14);
+	--icon-bullet-callout-background-light: rgba(127, 127, 127, 0.14);
+	--icon-bullet-callout-background-dark: rgba(170, 170, 170, 0.2);
 }
 
 .markdown-source-view.mod-cm6 .cm-line.icon-bullet-cm-line.icon-bullet-callout {
-	background-color: var(--icon-bullet-callout-background);
+	background-color: var(--icon-bullet-callout-background-light);
 	border-radius: 4px;
+}
+
+.theme-dark
+	.markdown-source-view.mod-cm6
+	.cm-line.icon-bullet-cm-line.icon-bullet-callout {
+	background-color: var(--icon-bullet-callout-background-dark);
 }
 
 .markdown-preview-view li.icon-bullet-reading {
@@ -143,9 +155,15 @@
 	right: -0.35em;
 	bottom: 0.08em;
 	left: -1.65em;
-	background-color: var(--icon-bullet-callout-background);
+	background-color: var(--icon-bullet-callout-background-light);
 	border-radius: 4px;
 	pointer-events: none;
+}
+
+.theme-dark
+	.markdown-preview-view
+	li.icon-bullet-reading.icon-bullet-callout::before {
+	background-color: var(--icon-bullet-callout-background-dark);
 }
 
 .markdown-preview-view li.icon-bullet-reading > .list-bullet {
