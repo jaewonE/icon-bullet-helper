@@ -2,6 +2,13 @@
 
 All notable changes to Icon Bullet Helper are documented here.
 
+## 2.0.3
+
+### Changed
+
+- Add README callouts explaining that the existing checkbox-styling-helper listing now provides the more complete Codex-built Icon Bullet Helper experience.
+- Link users to the renamed `icon-bullet-helper` GitHub repository.
+
 ## 2.0.2
 
 ### Fixed

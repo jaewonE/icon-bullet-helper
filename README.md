@@ -1,5 +1,8 @@
 # Icon Bullet Helper
 
+> [!NOTE]
+> The existing `checkbox-styling-helper` plugin now provides a more complete icon bullet experience through Codex. The renamed repository is available on [GitHub](https://github.com/jaewonE/icon-bullet-helper).
+
 [ [English](https://github.com/jaewonE/icon-bullet-helper) | [한국어](https://github.com/jaewonE/icon-bullet-helper/blob/master/README.ko.md) ]
 
 ![Icon Bullet Helper demo](assets/demo.png)
