@@ -190,8 +190,8 @@
 }
 
 .icon-bullet-layout {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) minmax(160px, 220px);
+	display: flex;
+	flex-direction: column;
 	gap: 12px;
 	margin: 8px 0 16px;
 }
@@ -259,6 +259,7 @@
 	flex-direction: column;
 	gap: 6px;
 	min-width: 0;
+	width: 100%;
 }
 
 .icon-bullet-layout-disabled-title {
@@ -273,8 +274,8 @@
 	background: var(--background-secondary);
 	padding: 6px;
 	min-height: 58px;
-	display: flex;
-	flex-direction: column;
+	display: grid;
+	grid-template-columns: repeat(4, minmax(78px, 1fr));
 	gap: 6px;
 }
 

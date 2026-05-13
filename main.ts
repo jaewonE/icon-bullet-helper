@@ -13,6 +13,7 @@ import {
 	DEFAULT_TRIGGER,
 	IconBulletSetting,
 	IconBulletVariant,
+	NEW_MARKER_DEFAULT_SVG,
 	buildIconBulletConfig,
 	calloutMarkerToken,
 	createIconElement,
@@ -321,15 +322,12 @@ class IconBulletSettingTab extends PluginSettingTab {
 			.setDesc("Markers are written as '- {marker} text' or '- {!marker} text'. SVG is rendered only by the plugin; the Markdown source stays unchanged.")
 			.addButton((button) =>
 				button.setButtonText("Add marker").onClick(async () => {
-					const defaultSvg =
-						DEFAULT_ICON_BULLETS.find((icon) => !isInsertItem(icon))?.svg ??
-						"";
 					this.plugin.settings.icons.push({
 						kind: "icon",
 						marker: "new",
 						label: "New marker",
-						color: "var(--text-normal)",
-						svg: sanitizeSvg(defaultSvg),
+						color: "#5c7cfa",
+						svg: sanitizeSvg(NEW_MARKER_DEFAULT_SVG),
 						enabled: true,
 						custom: true,
 					});
@@ -359,6 +357,12 @@ class IconBulletSettingTab extends PluginSettingTab {
 	}
 
 	private renderIconLayoutSetting(containerEl: HTMLElement) {
+		const applyGridSizeChange = async () => {
+			this.applyGridCapacity();
+			await this.plugin.saveSettings();
+			this.display();
+		};
+
 		new Setting(containerEl)
 			.setName("Icon layout")
 			.setDesc("Choose the picker grid size, then drag icons between the grid and disabled area.")
@@ -367,32 +371,56 @@ class IconBulletSettingTab extends PluginSettingTab {
 				text.inputEl.min = "1";
 				text
 					.setPlaceholder(String(DEFAULT_GRID_COLUMNS))
-					.setValue(String(this.plugin.settings.gridColumns))
-					.onChange(async (value) => {
+					.setValue(String(this.plugin.settings.gridColumns));
+				text.inputEl.addEventListener("change", async () => {
+					const nextValue = normalizeGridSize(
+						text.inputEl.value,
+						this.plugin.settings.gridColumns
+					);
+					if (nextValue !== this.plugin.settings.gridColumns) {
+						this.plugin.settings.gridColumns = nextValue;
+						await applyGridSizeChange();
+					} else {
+						text.setValue(String(this.plugin.settings.gridColumns));
+					}
+				});
+				text.inputEl.addEventListener("keydown", (event) => {
+					if (event.key === "Enter") {
 						this.plugin.settings.gridColumns = normalizeGridSize(
-							value,
-							DEFAULT_GRID_COLUMNS
+							text.inputEl.value,
+							this.plugin.settings.gridColumns
 						);
-						this.applyGridCapacity();
-						await this.plugin.saveSettings();
-						this.display();
-					});
+						void applyGridSizeChange();
+					}
+				});
 			})
 			.addText((text) => {
 				text.inputEl.type = "number";
 				text.inputEl.min = "1";
 				text
 					.setPlaceholder(String(DEFAULT_GRID_ROWS))
-					.setValue(String(this.plugin.settings.gridRows))
-					.onChange(async (value) => {
+					.setValue(String(this.plugin.settings.gridRows));
+				text.inputEl.addEventListener("change", async () => {
+					const nextValue = normalizeGridSize(
+						text.inputEl.value,
+						this.plugin.settings.gridRows
+					);
+					if (nextValue !== this.plugin.settings.gridRows) {
+						this.plugin.settings.gridRows = nextValue;
+						await applyGridSizeChange();
+					} else {
+						text.setValue(String(this.plugin.settings.gridRows));
+					}
+				});
+				text.inputEl.addEventListener("keydown", (event) => {
+					if (event.key === "Enter") {
 						this.plugin.settings.gridRows = normalizeGridSize(
-							value,
-							DEFAULT_GRID_ROWS
+							text.inputEl.value,
+							this.plugin.settings.gridRows
 						);
-						this.applyGridCapacity();
-						await this.plugin.saveSettings();
-						this.display();
-					});
+						void applyGridSizeChange();
+					}
+				});
 			})
 			.addButton((button) =>
 				button.setButtonText("위치 초기화").onClick(async () => {

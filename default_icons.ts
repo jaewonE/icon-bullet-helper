@@ -31,6 +31,12 @@ export const FALLBACK_SVG = svgIcon(`
 	<path d="M12 16h.01"></path>
 `);
 
+export const NEW_MARKER_DEFAULT_SVG = svgIcon(`
+	<rect x="3" y="3" width="18" height="18" rx="5" fill="currentColor" stroke="none"></rect>
+	<path d="M12 7.2v9.6" stroke="var(--background-primary)" stroke-width="2.7"></path>
+	<path d="M7.2 12h9.6" stroke="var(--background-primary)" stroke-width="2.7"></path>
+`);
+
 export const DEFAULT_ICON_BULLETS: IconBulletSetting[] = [
 	defaultInsert("number", "Number", "1. "),
 	defaultInsert("default", "Default", "- ", "#495057", `
@@ -546,7 +552,7 @@ export function getEnabledIconBullets(
 export function getRenderableIconBullets(
 	icons: IconBulletSetting[]
 ): IconBulletSetting[] {
-	return getEnabledIconBullets(icons).filter(isIconItem);
+	return icons.filter((icon) => isIconItem(icon) && isValidMarker(icon.marker));
 }
 
 export function buildIconBulletConfig(
