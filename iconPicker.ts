@@ -1,12 +1,20 @@
 import { App, Editor, Scope } from "obsidian";
 import {
 	IconBulletSetting,
+	IconBulletVariant,
+	calloutMarkerToken,
 	createIconElement,
 	escapeRegExp,
 	isInsertItem,
+	markerToken,
 } from "default_icons";
 
 let activePickerClose: (() => void) | null = null;
+let activePickerSelect: ((variant: IconBulletVariant) => boolean) | null = null;
+
+export function selectActiveIconPicker(variant: IconBulletVariant): boolean {
+	return activePickerSelect?.(variant) ?? false;
+}
 
 export function createIconPicker(
 	app: App,
@@ -43,7 +51,7 @@ export function createIconPicker(
 		iconEl.appendChild(nameSpan);
 
 		iconEl.onclick = () => {
-			selectIcon(icon);
+			selectIcon(icon, "common");
 		};
 
 		if (index === 0) {
@@ -56,7 +64,8 @@ export function createIconPicker(
 
 	function getReplacementForLine(
 		text: string,
-		icon: IconBulletSetting
+		icon: IconBulletSetting,
+		variant: IconBulletVariant
 	): { insertText: string; replaceTo: number } {
 		const leadingMatch = text.match(/^[>\s]*/);
 		const leading = leadingMatch ? leadingMatch[0] : "";
@@ -71,7 +80,11 @@ export function createIconPicker(
 				return `${leading}${icon.insertText ?? "- "}`;
 			}
 
-			return `${leading}${listMarker} {${icon.marker}} `;
+			const token =
+				variant === "callout"
+					? calloutMarkerToken(icon.marker)
+					: markerToken(icon.marker);
+			return `${leading}${listMarker} ${token} `;
 		};
 
 		if (triggerMatch) {
@@ -85,7 +98,7 @@ export function createIconPicker(
 		}
 
 		const listMatch = rest.match(
-			/^((?:[-*+]|\d+[.)])\s+)(?:(?:\{[A-Za-z0-9_-]+\}|\[[^\]]*\])\s*)?/
+			/^((?:[-*+]|\d+[.)])\s+)(?:(?:\{!?[A-Za-z0-9_-]+\}|\[[^\]]*\])\s*)?/
 		);
 		if (listMatch) {
 			const marker = listMatch[1].trim();
@@ -114,8 +127,15 @@ export function createIconPicker(
 		};
 	}
 
-	const selectIcon = (icon: IconBulletSetting) => {
-		const { insertText, replaceTo } = getReplacementForLine(lineText, icon);
+	const selectIcon = (
+		icon: IconBulletSetting,
+		variant: IconBulletVariant
+	) => {
+		const { insertText, replaceTo } = getReplacementForLine(
+			lineText,
+			icon,
+			variant
+		);
 		editor.replaceRange(
 			insertText,
 			{ line: lineNumber, ch: 0 },
@@ -127,6 +147,11 @@ export function createIconPicker(
 			editor.setCursor(lineNumber, insertText.length);
 			editor.focus();
 		}, 0);
+	};
+
+	activePickerSelect = (variant: IconBulletVariant) => {
+		selectIcon(icons[selectedIndex], variant);
+		return true;
 	};
 
 	const moveSelection = (nextIndex: number) => {
@@ -154,8 +179,10 @@ export function createIconPicker(
 			moveSelection((selectedIndex + 1) % icons.length);
 		} else if (key === "ArrowLeft") {
 			moveSelection((selectedIndex - 1 + icons.length) % icons.length);
-		} else if (key === " " || key === "Enter") {
-			selectIcon(icons[selectedIndex]);
+		} else if (key === " ") {
+			selectIcon(icons[selectedIndex], "common");
+		} else if (key === "Enter") {
+			selectIcon(icons[selectedIndex], "callout");
 		} else if (key === "Escape") {
 			closePicker();
 		} else {
@@ -228,6 +255,9 @@ export function createIconPicker(
 		app.keymap.popScope(pickerScope);
 		if (activePickerClose === closePicker) {
 			activePickerClose = null;
+		}
+		if (activePickerSelect) {
+			activePickerSelect = null;
 		}
 	};
 

@@ -1,6 +1,8 @@
 import { MarkdownPostProcessor } from "obsidian";
 import {
 	IconBulletConfig,
+	IconBulletVariant,
+	applyIconBulletCalloutStyle,
 	createIconElement,
 } from "default_icons";
 
@@ -51,8 +53,10 @@ export function buildIconBulletPostProcessor(
 				return;
 			}
 
-			const marker = match[3];
+			const marker = match[4];
 			const icon = config.iconsByMarker[marker];
+			const variant: IconBulletVariant =
+				match[3] === "!" ? "callout" : "common";
 			if (!icon) {
 				return;
 			}
@@ -60,7 +64,12 @@ export function buildIconBulletPostProcessor(
 			textNode.nodeValue = `${match[1]}${text.slice(match[0].length)}`;
 
 			li.addClass("icon-bullet-reading");
+			if (variant === "callout") {
+				li.addClass("icon-bullet-callout");
+				applyIconBulletCalloutStyle(li, icon);
+			}
 			li.setAttribute("data-icon-bullet-marker", marker);
+			li.setAttribute("data-icon-bullet-variant", variant);
 			li.prepend(
 				createIconElement(
 					icon,

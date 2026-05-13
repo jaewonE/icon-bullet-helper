@@ -10,8 +10,10 @@ import {
 import {
 	IconBulletConfig,
 	IconBulletSetting,
+	IconBulletVariant,
 	buildIconBulletConfig,
 	createIconElement,
+	iconBulletCalloutStyle,
 } from "default_icons";
 
 export const setIconBulletConfig = StateEffect.define<IconBulletConfig>();
@@ -70,8 +72,10 @@ function buildDecorations(view: EditorView): DecorationSet {
 			const match = line.text.match(config.editorRegex);
 
 			if (match) {
-				const marker = match[4];
+				const marker = match[5];
 				const icon = config.iconsByMarker[marker];
+				const variant: IconBulletVariant =
+					match[4] === "!" ? "callout" : "common";
 
 				if (icon) {
 					const replaceFrom = line.from + match[1].length;
@@ -80,16 +84,25 @@ function buildDecorations(view: EditorView): DecorationSet {
 						match[1].length +
 						match[2].length +
 						match[3].length +
-						match[5].length;
+						match[6].length;
+					const lineAttributes: Record<string, string> = {
+						class:
+							variant === "callout"
+								? "icon-bullet-cm-line icon-bullet-callout"
+								: "icon-bullet-cm-line",
+						"data-icon-bullet-marker": marker,
+						"data-icon-bullet-variant": variant,
+					};
+
+					if (variant === "callout") {
+						lineAttributes.style = iconBulletCalloutStyle(icon);
+					}
 
 					builder.add(
 						line.from,
 						line.from,
 						Decoration.line({
-							attributes: {
-								class: "icon-bullet-cm-line",
-								"data-icon-bullet-marker": marker,
-							},
+							attributes: lineAttributes,
 						})
 					);
 					builder.add(

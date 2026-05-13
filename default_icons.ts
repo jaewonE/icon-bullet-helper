@@ -4,12 +4,15 @@ export interface IconBulletSetting {
 	label: string;
 	svg?: string;
 	color?: string;
+	calloutBackgroundColor?: string;
 	insertText?: string;
 	displaySvg?: string;
 	displayColor?: string;
 	enabled: boolean;
 	custom?: boolean;
 }
+
+export type IconBulletVariant = "common" | "callout";
 
 export interface IconBulletConfig {
 	iconsByMarker: Record<string, IconBulletSetting>;
@@ -18,6 +21,7 @@ export interface IconBulletConfig {
 }
 
 const MAX_SVG_LENGTH = 12000;
+const HEX_COLOR_REGEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 
 export const DEFAULT_TRIGGER = "{";
 
@@ -202,12 +206,21 @@ export function markerToken(marker: string): string {
 	return `{${normalizeMarker(marker)}}`;
 }
 
-export function syntaxForMarker(marker: string): string {
-	return `- ${markerToken(marker)} `;
+export function calloutMarkerToken(marker: string): string {
+	return `{!${normalizeMarker(marker)}}`;
+}
+
+export function syntaxForMarker(
+	marker: string,
+	variant: IconBulletVariant = "common"
+): string {
+	const token =
+		variant === "callout" ? calloutMarkerToken(marker) : markerToken(marker);
+	return `- ${token} `;
 }
 
 export function normalizeMarker(marker: string): string {
-	return marker.replace(/[{}]/g, "").trim();
+	return marker.replace(/[{}]/g, "").trim().replace(/^!/, "");
 }
 
 export function isValidMarker(marker: string): boolean {
@@ -220,13 +233,93 @@ export function escapeRegExp(value: string): string {
 
 export function normalizeColor(color: string | undefined): string {
 	const value = (color ?? "").trim();
-	if (/^#[0-9a-f]{3,8}$/i.test(value)) {
+	if (HEX_COLOR_REGEX.test(value)) {
 		return value;
 	}
 	if (/^var\(--[a-z0-9-]+\)$/i.test(value)) {
 		return value;
 	}
 	return "var(--text-normal)";
+}
+
+export function normalizeSolidColor(
+	color: string | undefined
+): string | undefined {
+	const value = (color ?? "").trim();
+	if (!value) {
+		return undefined;
+	}
+
+	if (HEX_COLOR_REGEX.test(value)) {
+		return value;
+	}
+
+	if (
+		/^(?:rgb|hsl)a?\([^;{}]*\)$/i.test(value) &&
+		!/url\(|javascript:|data:/i.test(value)
+	) {
+		return value;
+	}
+
+	if (/^var\(--[a-z0-9-]+\)$/i.test(value)) {
+		return value;
+	}
+
+	return undefined;
+}
+
+export function getCalloutBackgroundColor(icon: IconBulletSetting): string {
+	const explicitColor = normalizeSolidColor(icon.calloutBackgroundColor);
+	if (explicitColor) {
+		return explicitColor;
+	}
+
+	const iconColor = normalizeColor(icon.color);
+	return (
+		hexToRgba(iconColor, 0.14) ??
+		`color-mix(in srgb, ${iconColor} 14%, transparent)`
+	);
+}
+
+export function iconBulletCalloutStyle(icon: IconBulletSetting): string {
+	return `--icon-bullet-callout-background: ${getCalloutBackgroundColor(icon)};`;
+}
+
+export function applyIconBulletCalloutStyle(
+	element: HTMLElement,
+	icon: IconBulletSetting
+) {
+	element.style.setProperty(
+		"--icon-bullet-callout-background",
+		getCalloutBackgroundColor(icon)
+	);
+}
+
+function hexToRgba(color: string, alpha: number): string | null {
+	const match = color.match(
+		/^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i
+	);
+	if (!match) {
+		return null;
+	}
+
+	let hex = match[1];
+	if (hex.length === 3 || hex.length === 4) {
+		hex = hex
+			.split("")
+			.map((character) => character + character)
+			.join("");
+	}
+
+	const red = parseInt(hex.slice(0, 2), 16);
+	const green = parseInt(hex.slice(2, 4), 16);
+	const blue = parseInt(hex.slice(4, 6), 16);
+	const alphaValue =
+		hex.length === 8
+			? Number((parseInt(hex.slice(6, 8), 16) / 255).toFixed(3))
+			: alpha;
+
+	return `rgba(${red}, ${green}, ${blue}, ${alphaValue})`;
 }
 
 export function sanitizeSvg(svg: string | undefined): string {
@@ -339,6 +432,7 @@ function normalizeIconBulletSetting(
 		marker,
 		label: String(icon.label ?? marker),
 		color: normalizeColor(icon.color),
+		calloutBackgroundColor: normalizeSolidColor(icon.calloutBackgroundColor),
 		svg: sanitizeSvg(icon.svg),
 		enabled: icon.enabled !== false,
 		custom: icon.custom === true,
@@ -380,9 +474,11 @@ export function buildIconBulletConfig(
 	return {
 		iconsByMarker,
 		editorRegex: new RegExp(
-			`^(\\s*)([-*+]\\s+)(\\{(${markerAlternatives})\\})(\\s*)`
+			`^(\\s*)([-*+]\\s+)(\\{(!?)(${markerAlternatives})\\})(\\s*)`
 		),
-		readingRegex: new RegExp(`^(\\s*)(\\{(${markerAlternatives})\\})(\\s*)`),
+		readingRegex: new RegExp(
+			`^(\\s*)(\\{(!?)(${markerAlternatives})\\})(\\s*)`
+		),
 	};
 }
 
@@ -393,12 +489,12 @@ export function createIconElement(
 	const element = document.createElement("span");
 	element.className = className;
 	element.setAttribute("aria-label", icon.label);
-	element.setAttribute(
-		"title",
-		isInsertItem(icon)
-			? `${icon.label} ${icon.insertText ?? ""}`
-			: `${icon.label} ${markerToken(icon.marker)}`
-	);
+	const commonToken = markerToken(icon.marker);
+	const calloutToken = calloutMarkerToken(icon.marker);
+	const title = isInsertItem(icon)
+		? `${icon.label} ${icon.insertText ?? ""}`
+		: `${icon.label} ${commonToken} / ${calloutToken}`;
+	element.setAttribute("title", title);
 
 	if (isInsertItem(icon)) {
 		if (icon.displaySvg) {

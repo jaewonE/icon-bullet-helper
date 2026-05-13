@@ -117,9 +117,35 @@
 	white-space: nowrap;
 }
 
+.icon-bullet-callout {
+	--icon-bullet-callout-background: rgba(127, 127, 127, 0.14);
+}
+
+.markdown-source-view.mod-cm6 .cm-line.icon-bullet-cm-line.icon-bullet-callout {
+	background-color: var(--icon-bullet-callout-background);
+	border-radius: 4px;
+}
+
 .markdown-preview-view li.icon-bullet-reading {
 	list-style: none;
 	position: relative;
+}
+
+.markdown-preview-view li.icon-bullet-reading.icon-bullet-callout {
+	isolation: isolate;
+}
+
+.markdown-preview-view li.icon-bullet-reading.icon-bullet-callout::before {
+	content: "";
+	position: absolute;
+	z-index: -1;
+	top: 0.08em;
+	right: -0.35em;
+	bottom: 0.08em;
+	left: -1.65em;
+	background-color: var(--icon-bullet-callout-background);
+	border-radius: 4px;
+	pointer-events: none;
 }
 
 .markdown-preview-view li.icon-bullet-reading > .list-bullet {

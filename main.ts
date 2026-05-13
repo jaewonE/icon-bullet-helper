@@ -1,11 +1,20 @@
 import { EditorView } from "@codemirror/view";
-import { App, MarkdownView, Plugin, PluginSettingTab, Setting } from "obsidian";
-import { createIconPicker } from "iconPicker";
+import {
+	App,
+	MarkdownView,
+	Notice,
+	Plugin,
+	PluginSettingTab,
+	Setting,
+} from "obsidian";
+import { createIconPicker, selectActiveIconPicker } from "iconPicker";
 import {
 	DEFAULT_ICON_BULLETS,
 	DEFAULT_TRIGGER,
 	IconBulletSetting,
+	IconBulletVariant,
 	buildIconBulletConfig,
+	calloutMarkerToken,
 	createIconElement,
 	escapeRegExp,
 	getEnabledIconBullets,
@@ -14,6 +23,7 @@ import {
 	normalizeColor,
 	normalizeIconBulletSettings,
 	normalizeMarker,
+	normalizeSolidColor,
 	sanitizeSvg,
 } from "default_icons";
 import {
@@ -77,6 +87,22 @@ export default class IconBulletPlugin extends Plugin {
 					key: ";",
 				},
 			],
+		});
+
+		this.addCommand({
+			id: "insert-selected-common-icon-bullet",
+			name: "Picker: insert selected icon bullet",
+			callback: () => {
+				this.selectActivePickerIcon("common");
+			},
+		});
+
+		this.addCommand({
+			id: "insert-selected-callout-icon-bullet",
+			name: "Picker: insert selected callout icon bullet",
+			callback: () => {
+				this.selectActivePickerIcon("callout");
+			},
 		});
 	}
 
@@ -145,6 +171,12 @@ export default class IconBulletPlugin extends Plugin {
 		}
 	}
 
+	selectActivePickerIcon(variant: IconBulletVariant) {
+		if (!selectActiveIconPicker(variant)) {
+			new Notice("Open the icon bullet picker first.");
+		}
+	}
+
 	handleEditorChange = () => {
 		this.openIconPicker();
 	};
@@ -209,8 +241,12 @@ class IconBulletSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
+			.setName("Picker selection shortcuts")
+			.setDesc("Space inserts a common marker like '{p}'. Enter inserts a callout marker like '{!p}'. To add more shortcuts, assign hotkeys to the two 'Picker: insert selected ...' commands in Obsidian Hotkeys.");
+
+		new Setting(containerEl)
 			.setName("Icon bullets")
-			.setDesc("Markers are written as '- {marker} text'. SVG is rendered only by the plugin; the Markdown source stays unchanged.")
+			.setDesc("Markers are written as '- {marker} text' or '- {!marker} text'. SVG is rendered only by the plugin; the Markdown source stays unchanged.")
 			.addButton((button) =>
 				button.setButtonText("Add marker").onClick(async () => {
 					const defaultSvg =
@@ -271,7 +307,9 @@ class IconBulletSettingTab extends PluginSettingTab {
 		});
 		summaryEl.createSpan({
 			cls: "icon-bullet-setting-marker",
-			text: isInsertItem(icon) ? icon.insertText ?? "" : `{${icon.marker}}`,
+			text: isInsertItem(icon)
+				? icon.insertText ?? ""
+				: `{${icon.marker}} / ${calloutMarkerToken(icon.marker)}`,
 		});
 		const statusEl = summaryEl.createSpan({
 			cls: icon.enabled
@@ -328,6 +366,19 @@ class IconBulletSettingTab extends PluginSettingTab {
 					icon.color = normalizeColor(value);
 					await this.plugin.saveSettings();
 				})
+			);
+
+		new Setting(controlsEl)
+			.setName("Callout background")
+			.setDesc("Optional solid background color for callout markers. Leave empty to derive it from the icon color.")
+			.addText((text) =>
+				text
+					.setPlaceholder("Uses icon color")
+					.setValue(icon.calloutBackgroundColor ?? "")
+					.onChange(async (value) => {
+						icon.calloutBackgroundColor = normalizeSolidColor(value);
+						await this.plugin.saveSettings();
+					})
 			);
 
 		new Setting(controlsEl)
