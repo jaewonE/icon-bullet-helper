@@ -1,5 +1,6 @@
 import { App, Editor, Scope } from "obsidian";
 import {
+	DEFAULT_TRIGGER,
 	IconBulletSetting,
 	IconBulletVariant,
 	calloutMarkerToken,
@@ -70,7 +71,7 @@ export function createIconPicker(
 		const leadingMatch = text.match(/^[>\s]*/);
 		const leading = leadingMatch ? leadingMatch[0] : "";
 		const rest = text.slice(leading.length);
-		const trigger = escapeRegExp(customTrigger || "{");
+		const trigger = escapeRegExp(customTrigger || DEFAULT_TRIGGER);
 		const triggerMatch = rest.match(
 			new RegExp(`^((?:[-*+]|\\d+[.)])\\s*)${trigger}\\s*$`)
 		);

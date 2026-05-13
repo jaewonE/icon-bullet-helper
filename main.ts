@@ -20,6 +20,7 @@ import {
 	getEnabledIconBullets,
 	isValidMarker,
 	isInsertItem,
+	markerToken,
 	normalizeColor,
 	normalizeIconBulletSettings,
 	normalizeMarker,
@@ -104,6 +105,20 @@ export default class IconBulletPlugin extends Plugin {
 				this.selectActivePickerIcon("callout");
 			},
 		});
+
+		this.addCommand({
+			id: "toggle-icon-bullet-callout",
+			name: "Toggle current icon bullet callout state",
+			callback: () => {
+				this.toggleCurrentIconBulletVariant();
+			},
+			hotkeys: [
+				{
+					modifiers: ["Mod"],
+					key: ".",
+				},
+			],
+		});
 	}
 
 	async loadSettings() {
@@ -177,6 +192,39 @@ export default class IconBulletPlugin extends Plugin {
 		}
 	}
 
+	toggleCurrentIconBulletVariant() {
+		const editor =
+			this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
+		if (!editor) return;
+
+		const cursor = editor.getCursor();
+		const lineNumber = cursor.line;
+		const lineText = editor.getLine(lineNumber);
+		const config = buildIconBulletConfig(this.settings.icons);
+		const match = config.editorRegex ? lineText.match(config.editorRegex) : null;
+		if (!match) {
+			new Notice("No icon bullet marker on the current line.");
+			return;
+		}
+
+		const marker = match[5];
+		const replacement =
+			match[4] === "!" ? markerToken(marker) : calloutMarkerToken(marker);
+		const replaceFrom = match[1].length + match[2].length;
+		const replaceTo = replaceFrom + match[3].length;
+		const delta = replacement.length - match[3].length;
+
+		editor.replaceRange(
+			replacement,
+			{ line: lineNumber, ch: replaceFrom },
+			{ line: lineNumber, ch: replaceTo }
+		);
+
+		if (cursor.ch >= replaceTo) {
+			editor.setCursor(lineNumber, cursor.ch + delta);
+		}
+	}
+
 	handleEditorChange = () => {
 		this.openIconPicker();
 	};
@@ -228,7 +276,7 @@ class IconBulletSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Popup trigger")
-			.setDesc("Type this after a list marker, for example '- {', to open the picker.")
+			.setDesc("Type this after a list marker, for example '- !', to open the picker.")
 			.addText((text) =>
 				text
 					.setPlaceholder(DEFAULT_TRIGGER)
@@ -242,7 +290,7 @@ class IconBulletSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Picker selection shortcuts")
-			.setDesc("Space inserts a common marker like '{p}'. Enter inserts a callout marker like '{!p}'. To add more shortcuts, assign hotkeys to the two 'Picker: insert selected ...' commands in Obsidian Hotkeys.");
+			.setDesc("Space inserts a common marker like '{p}'. Enter inserts a callout marker like '{!p}'. Command + . toggles the current icon bullet between both forms. To add more shortcuts, assign hotkeys to the picker or toggle commands in Obsidian Hotkeys.");
 
 		new Setting(containerEl)
 			.setName("Icon bullets")
@@ -307,9 +355,7 @@ class IconBulletSettingTab extends PluginSettingTab {
 		});
 		summaryEl.createSpan({
 			cls: "icon-bullet-setting-marker",
-			text: isInsertItem(icon)
-				? icon.insertText ?? ""
-				: `{${icon.marker}} / ${calloutMarkerToken(icon.marker)}`,
+			text: isInsertItem(icon) ? icon.insertText ?? "" : `{${icon.marker}}`,
 		});
 		const statusEl = summaryEl.createSpan({
 			cls: icon.enabled

@@ -24,12 +24,14 @@ This repository is the clean project home for that icon bullet helper direction.
 ## Core Behavior
 
 - Opens an icon picker from a command hotkey.
-- Opens the same picker automatically after a list trigger such as `- {`.
+- Opens the same picker automatically after a list trigger such as `- !`.
 - Supports keyboard selection with arrow keys, `Space` for common icon bullets, and `Enter` for callout icon bullets.
+- Toggles a marker between common and callout forms with `Command + .` on macOS or `Ctrl + .` on Windows/Linux.
 - Supports mouse hover and click selection.
 - Keeps picker keyboard navigation inside the popup instead of moving the editor cursor at the same time.
 - Renders configured SVG markers in Live Preview through CodeMirror decorations.
 - Renders configured SVG markers in Reading mode through a Markdown post processor.
+- Leaves markers as plain source text in Source mode and inside fenced code blocks.
 - Keeps the underlying Markdown text unchanged after rendering.
 
 ## Usage
@@ -44,7 +46,7 @@ Then select a picker item with the mouse or keyboard.
 You can also type the configured trigger after a list marker:
 
 ```markdown
-- {
+- !
 ```
 
 Selecting `Good` converts the current line to:
@@ -61,7 +63,7 @@ Pressing `Enter` instead inserts the callout form:
 
 Callout icon bullets render with a solid-color background tint. If no callout background is set for an icon, the tint is derived from the icon's main color.
 
-The default trigger is `{`, and it can be changed in the plugin settings.
+The default trigger is `!`, and it can be changed in the plugin settings.
 
 ## Supported List Forms
 
@@ -120,7 +122,7 @@ The settings tab includes:
 - Popup size: `Small`, `Medium`, or `Big`.
 - Popup trigger text.
 - Enable/disable state for each picker item.
-- Built-in picker selection keys: `Space` inserts `{marker}`, and `Enter` inserts `{!marker}`. Additional shortcuts can be assigned to the picker selection commands from Obsidian's Hotkeys settings.
+- Built-in picker selection keys: `Space` inserts `{marker}`, and `Enter` inserts `{!marker}`. The default toggle hotkey is `Command + .` on macOS or `Ctrl + .` on Windows/Linux.
 - Collapsible configuration blocks for marker entries.
 - Label, marker, color, callout background color, and SVG editing for SVG icon entries.
 - Add custom marker.

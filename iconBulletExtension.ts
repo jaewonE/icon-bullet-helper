@@ -1,4 +1,9 @@
-import { RangeSetBuilder, StateEffect, StateField } from "@codemirror/state";
+import {
+	RangeSetBuilder,
+	StateEffect,
+	StateField,
+	Text,
+} from "@codemirror/state";
 import {
 	Decoration,
 	DecorationSet,
@@ -58,7 +63,11 @@ class IconBulletWidget extends WidgetType {
 
 function buildDecorations(view: EditorView): DecorationSet {
 	const config = view.state.field(iconBulletConfigField);
-	if (!config.editorRegex || view.visibleRanges.length === 0) {
+	if (
+		!config.editorRegex ||
+		view.visibleRanges.length === 0 ||
+		!isLivePreviewMode(view)
+	) {
 		return Decoration.none;
 	}
 
@@ -66,12 +75,13 @@ function buildDecorations(view: EditorView): DecorationSet {
 
 	for (const range of view.visibleRanges) {
 		let position = range.from;
+		let codeFence = getCodeFenceAt(view.state.doc, range.from);
 
 		while (position <= range.to) {
 			const line = view.state.doc.lineAt(position);
 			const match = line.text.match(config.editorRegex);
 
-			if (match) {
+			if (!codeFence && match) {
 				const marker = match[5];
 				const icon = config.iconsByMarker[marker];
 				const variant: IconBulletVariant =
@@ -116,6 +126,8 @@ function buildDecorations(view: EditorView): DecorationSet {
 				}
 			}
 
+			codeFence = updateCodeFence(codeFence, line.text);
+
 			if (line.to >= range.to || line.to === view.state.doc.length) {
 				break;
 			}
@@ -127,22 +139,60 @@ function buildDecorations(view: EditorView): DecorationSet {
 	return builder.finish();
 }
 
+function isLivePreviewMode(view: EditorView): boolean {
+	return Boolean(view.dom.closest(".markdown-source-view.is-live-preview"));
+}
+
+function getCodeFenceAt(document: Text, position: number): string | null {
+	let codeFence: string | null = null;
+	const firstVisibleLine = document.lineAt(position);
+
+	for (let lineNumber = 1; lineNumber < firstVisibleLine.number; lineNumber++) {
+		codeFence = updateCodeFence(codeFence, document.line(lineNumber).text);
+	}
+
+	return codeFence;
+}
+
+function updateCodeFence(currentFence: string | null, text: string): string | null {
+	const match = text.match(/^ {0,3}(`{3,}|~{3,})/);
+	if (!match) {
+		return currentFence;
+	}
+
+	const fence = match[1];
+	if (!currentFence) {
+		return fence;
+	}
+
+	if (fence[0] === currentFence[0] && fence.length >= currentFence.length) {
+		return null;
+	}
+
+	return currentFence;
+}
+
 export const iconBulletExtension = ViewPlugin.fromClass(
 	class {
 		decorations: DecorationSet;
+		private isLivePreview: boolean;
 
 		constructor(view: EditorView) {
+			this.isLivePreview = isLivePreviewMode(view);
 			this.decorations = buildDecorations(view);
 		}
 
 		update(update: ViewUpdate) {
+			const isLivePreview = isLivePreviewMode(update.view);
 			if (
 				update.docChanged ||
 				update.viewportChanged ||
+				isLivePreview !== this.isLivePreview ||
 				update.transactions.some((transaction) =>
 					transaction.effects.some((effect) => effect.is(setIconBulletConfig))
 				)
 			) {
+				this.isLivePreview = isLivePreview;
 				this.decorations = buildDecorations(update.view);
 			}
 		}

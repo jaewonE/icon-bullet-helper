@@ -42,6 +42,10 @@ export function buildIconBulletPostProcessor(
 		}
 
 		element.findAll("li").forEach((li) => {
+			if (li.closest("pre, code")) {
+				return;
+			}
+
 			const textNode = getFirstTextNode(li);
 			const text = textNode?.nodeValue;
 			if (!text || li.hasClass("icon-bullet-reading")) {

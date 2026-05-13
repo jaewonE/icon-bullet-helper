@@ -23,7 +23,7 @@ export interface IconBulletConfig {
 const MAX_SVG_LENGTH = 12000;
 const HEX_COLOR_REGEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 
-export const DEFAULT_TRIGGER = "{";
+export const DEFAULT_TRIGGER = "!";
 
 export const FALLBACK_SVG = svgIcon(`
 	<circle cx="12" cy="12" r="8"></circle>
