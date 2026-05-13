@@ -70,7 +70,7 @@ The submitted repository should have the correct `manifest.json` committed on th
 
 Icon Bullet Helper should remain aligned with these project constraints:
 
-- Keep the plugin ID as `icon-bullet-helper`.
+- Keep the plugin ID as `checkbox-styling-helper` while this project is distributed through the existing checkbox-styling-helper Obsidian plugin path.
 - Keep Markdown source text unchanged.
 - Do not depend on theme checkbox styling for icon rendering.
 - Do not add telemetry or network behavior.

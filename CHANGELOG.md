@@ -2,6 +2,14 @@
 
 All notable changes to Icon Bullet Helper are documented here.
 
+## 2.0.0
+
+### Changed
+
+- Replace the legacy checkbox styling implementation with theme-independent SVG icon bullets for Markdown list markers.
+- Keep the existing Obsidian plugin ID for compatibility with the published checkbox-styling-helper plugin path.
+- Preserve Markdown source text while rendering `{marker}` and `{!marker}` syntax in Live Preview and Reading view.
+
 ## 1.0.1
 
 ### Fixed
