@@ -94,10 +94,12 @@
 	cursor: pointer;
 	padding: var(--icon-picker-item-padding-y) var(--icon-picker-item-padding-x);
 	border-radius: 6px;
+	width: 100%;
 	min-width: 0;
 	height: auto;
 	display: flex;
 	align-items: center;
+	justify-content: flex-start !important;
 	gap: 10px;
 	text-align: left;
 	font: inherit;
@@ -179,7 +181,8 @@
 
 .markdown-source-view.mod-cm6 .icon-bullet-cm-icon {
 	--icon-bullet-size: 0.95em;
-	margin-right: 0.38em;
+	margin-left: 1.52em;
+	margin-right: 0.56em;
 }
 
 .icon-bullet-settings-tabs {

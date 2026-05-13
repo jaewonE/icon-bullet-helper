@@ -62,8 +62,6 @@ export default class IconBulletPlugin extends Plugin {
 	settings: IconBulletPluginSettings;
 
 	async onload() {
-		console.log("Loading IconBulletPlugin");
-
 		await this.loadSettings();
 
 		this.addSettingTab(new IconBulletSettingTab(this.app, this));
@@ -263,10 +261,6 @@ export default class IconBulletPlugin extends Plugin {
 				effects: [setIconBulletConfig.of(config)],
 			});
 		});
-	}
-
-	onunload() {
-		console.log("Unloading IconBulletPlugin");
 	}
 }
 
