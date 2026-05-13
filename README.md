@@ -1,6 +1,8 @@
 # Icon Bullet Helper
 
-[ [English](https://github.com/jaewonE/checkbox-styling-helper) | [한국어](https://github.com/jaewonE/checkbox-styling-helper/blob/master/README.ko.md) ]
+[ [English](https://github.com/jaewonE/icon-bullet-helper) | [한국어](https://github.com/jaewonE/icon-bullet-helper/blob/master/README.ko.md) ]
+
+![Icon Bullet Helper demo](assets/demo.png)
 
 Icon Bullet Helper is an Obsidian plugin for writing visual icon bullets while keeping your notes in plain Markdown.
 
@@ -182,7 +184,7 @@ Download the release assets from the latest GitHub release:
 Copy them into:
 
 ```text
-<Vault>/.obsidian/plugins/checkbox-styling-helper/
+<Vault>/.obsidian/plugins/icon-bullet-helper/
 ```
 
 Then reload Obsidian and enable **Icon Bullet Helper** from **Settings -> Community plugins**.
