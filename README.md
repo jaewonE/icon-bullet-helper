@@ -123,6 +123,7 @@ The settings tab includes:
 - Popup trigger text.
 - Enable/disable state for each picker item.
 - Built-in picker selection keys: `Space` inserts `{marker}`, and `Enter` inserts `{!marker}`. The default toggle hotkey is `Command + .` on macOS or `Ctrl + .` on Windows/Linux.
+- Drag-and-drop picker layout controls with configurable grid rows and columns plus a disabled item area.
 - Collapsible configuration blocks for marker entries.
 - Label, marker, color, callout background color, and SVG editing for SVG icon entries.
 - Add custom marker.

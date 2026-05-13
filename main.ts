@@ -38,12 +38,19 @@ interface IconBulletPluginSettings {
 	icons: IconBulletSetting[];
 	customTrigger: string;
 	popupSize: PopupSize;
+	gridColumns: number;
+	gridRows: number;
 }
+
+const DEFAULT_GRID_COLUMNS = 4;
+const DEFAULT_GRID_ROWS = 1;
 
 const DEFAULT_SETTINGS: IconBulletPluginSettings = {
 	icons: DEFAULT_ICON_BULLETS,
 	customTrigger: DEFAULT_TRIGGER,
 	popupSize: "medium",
+	gridColumns: DEFAULT_GRID_COLUMNS,
+	gridRows: DEFAULT_GRID_ROWS,
 };
 
 type PopupSize = "small" | "medium" | "big";
@@ -140,12 +147,27 @@ export default class IconBulletPlugin extends Plugin {
 				)
 			: [];
 
+		const icons = [...defaultIcons, ...customLoadedIcons];
+		if (!icons.some((icon) => icon.enabled) && icons[0]) {
+			icons[0].enabled = true;
+		}
+		const gridColumns = normalizeGridSize(
+			loaded?.gridColumns,
+			DEFAULT_GRID_COLUMNS
+		);
+		const gridRows = normalizeGridSize(
+			loaded?.gridRows,
+			getResetGridRows(icons, gridColumns)
+		);
+
 		this.settings = {
 			customTrigger: hasNewIconSettings
 				? loaded?.customTrigger ?? DEFAULT_TRIGGER
 				: DEFAULT_TRIGGER,
 			popupSize: normalizePopupSize(loaded?.popupSize),
-			icons: [...defaultIcons, ...customLoadedIcons],
+			gridColumns,
+			gridRows,
+			icons: fitIconsToGridCapacity(icons, gridColumns * gridRows),
 		};
 	}
 
@@ -292,6 +314,8 @@ class IconBulletSettingTab extends PluginSettingTab {
 			.setName("Picker selection shortcuts")
 			.setDesc("Space inserts a common marker like '{p}'. Enter inserts a callout marker like '{!p}'. Command + . toggles the current icon bullet between both forms. To add more shortcuts, assign hotkeys to the picker or toggle commands in Obsidian Hotkeys.");
 
+		this.renderIconLayoutSetting(containerEl);
+
 		new Setting(containerEl)
 			.setName("Icon bullets")
 			.setDesc("Markers are written as '- {marker} text' or '- {!marker} text'. SVG is rendered only by the plugin; the Markdown source stays unchanged.")
@@ -309,6 +333,7 @@ class IconBulletSettingTab extends PluginSettingTab {
 						enabled: true,
 						custom: true,
 					});
+					this.expandGridToFitEnabled();
 					await this.plugin.saveSettings();
 					this.display();
 				})
@@ -318,6 +343,7 @@ class IconBulletSettingTab extends PluginSettingTab {
 					this.plugin.settings.icons = normalizeIconBulletSettings(
 						DEFAULT_ICON_BULLETS
 					);
+					this.resetGridShape();
 					await this.plugin.saveSettings();
 					this.display();
 				})
@@ -330,6 +356,277 @@ class IconBulletSettingTab extends PluginSettingTab {
 		this.plugin.settings.icons.forEach((icon, index) => {
 			this.renderIconSetting(iconListEl, icon, index);
 		});
+	}
+
+	private renderIconLayoutSetting(containerEl: HTMLElement) {
+		new Setting(containerEl)
+			.setName("Icon layout")
+			.setDesc("Choose the picker grid size, then drag icons between the grid and disabled area.")
+			.addText((text) => {
+				text.inputEl.type = "number";
+				text.inputEl.min = "1";
+				text
+					.setPlaceholder(String(DEFAULT_GRID_COLUMNS))
+					.setValue(String(this.plugin.settings.gridColumns))
+					.onChange(async (value) => {
+						this.plugin.settings.gridColumns = normalizeGridSize(
+							value,
+							DEFAULT_GRID_COLUMNS
+						);
+						this.applyGridCapacity();
+						await this.plugin.saveSettings();
+						this.display();
+					});
+			})
+			.addText((text) => {
+				text.inputEl.type = "number";
+				text.inputEl.min = "1";
+				text
+					.setPlaceholder(String(DEFAULT_GRID_ROWS))
+					.setValue(String(this.plugin.settings.gridRows))
+					.onChange(async (value) => {
+						this.plugin.settings.gridRows = normalizeGridSize(
+							value,
+							DEFAULT_GRID_ROWS
+						);
+						this.applyGridCapacity();
+						await this.plugin.saveSettings();
+						this.display();
+					});
+			})
+			.addButton((button) =>
+				button.setButtonText("위치 초기화").onClick(async () => {
+					this.resetGridShape();
+					await this.plugin.saveSettings();
+					this.display();
+				})
+			);
+
+		const layoutEl = containerEl.createDiv({ cls: "icon-bullet-layout" });
+		const gridEl = layoutEl.createDiv({ cls: "icon-bullet-layout-grid" });
+		const disabledEl = layoutEl.createDiv({
+			cls: "icon-bullet-layout-disabled",
+		});
+		const enabledIcons = this.getEnabledIcons();
+		const disabledIcons = this.getDisabledIcons();
+		const capacity = this.getGridCapacity();
+
+		gridEl.style.setProperty(
+			"--icon-bullet-layout-columns",
+			String(this.plugin.settings.gridColumns)
+		);
+
+		for (let slotIndex = 0; slotIndex < capacity; slotIndex++) {
+			const slotEl = gridEl.createDiv({ cls: "icon-bullet-layout-slot" });
+			slotEl.dataset.slotIndex = String(slotIndex);
+			this.registerGridDropTarget(slotEl, slotIndex);
+
+			const icon = enabledIcons[slotIndex];
+			if (icon) {
+				slotEl.appendChild(this.createLayoutIcon(icon, "enabled"));
+			}
+		}
+
+		disabledEl.createDiv({
+			cls: "icon-bullet-layout-disabled-title",
+			text: "Disabled",
+		});
+		const disabledListEl = disabledEl.createDiv({
+			cls: "icon-bullet-layout-disabled-list",
+		});
+		this.registerDisabledDropTarget(disabledListEl);
+
+		if (disabledIcons.length === 0) {
+			disabledListEl.createDiv({
+				cls: "icon-bullet-layout-empty",
+				text: "Drop icons here to disable them.",
+			});
+		} else {
+			disabledIcons.forEach((icon) => {
+				disabledListEl.appendChild(this.createLayoutIcon(icon, "disabled"));
+			});
+		}
+	}
+
+	private createLayoutIcon(
+		icon: IconBulletSetting,
+		state: "enabled" | "disabled"
+	): HTMLElement {
+		const iconEl = document.createElement("div");
+		iconEl.className = `icon-bullet-layout-item is-${state}`;
+		iconEl.draggable = true;
+		iconEl.dataset.marker = icon.marker;
+
+		iconEl.appendChild(
+			createIconElement(icon, "icon-bullet-icon icon-bullet-layout-icon")
+		);
+		iconEl.createSpan({
+			cls: "icon-bullet-layout-label",
+			text: icon.label,
+		});
+
+		iconEl.addEventListener("dragstart", (event) => {
+			if (!event.dataTransfer) {
+				return;
+			}
+
+			event.dataTransfer.setData("text/plain", icon.marker);
+			event.dataTransfer.setData("application/x-icon-bullet", icon.marker);
+			event.dataTransfer.effectAllowed = "move";
+		});
+
+		return iconEl;
+	}
+
+	private registerGridDropTarget(slotEl: HTMLElement, slotIndex: number) {
+		slotEl.addEventListener("dragover", (event) => {
+			event.preventDefault();
+			slotEl.addClass("is-drop-target");
+			if (event.dataTransfer) {
+				event.dataTransfer.dropEffect = "move";
+			}
+		});
+		slotEl.addEventListener("dragleave", () => {
+			slotEl.removeClass("is-drop-target");
+		});
+		slotEl.addEventListener("drop", async (event) => {
+			event.preventDefault();
+			slotEl.removeClass("is-drop-target");
+			const marker = getDraggedMarker(event);
+			if (!marker) {
+				return;
+			}
+
+			this.moveIconToGrid(marker, slotIndex);
+			await this.plugin.saveSettings();
+			this.display();
+		});
+	}
+
+	private registerDisabledDropTarget(disabledEl: HTMLElement) {
+		disabledEl.addEventListener("dragover", (event) => {
+			event.preventDefault();
+			disabledEl.addClass("is-drop-target");
+			if (event.dataTransfer) {
+				event.dataTransfer.dropEffect = "move";
+			}
+		});
+		disabledEl.addEventListener("dragleave", () => {
+			disabledEl.removeClass("is-drop-target");
+		});
+		disabledEl.addEventListener("drop", async (event) => {
+			event.preventDefault();
+			disabledEl.removeClass("is-drop-target");
+			const marker = getDraggedMarker(event);
+			if (!marker) {
+				return;
+			}
+
+			if (!this.moveIconToDisabled(marker)) {
+				return;
+			}
+			await this.plugin.saveSettings();
+			this.display();
+		});
+	}
+
+	private moveIconToGrid(marker: string, slotIndex: number) {
+		const icon = this.plugin.settings.icons.find(
+			(candidate) => candidate.marker === marker
+		);
+		if (!icon) {
+			return;
+		}
+
+		const enabledIcons = this.getEnabledIcons().filter(
+			(candidate) => candidate.marker !== marker
+		);
+		const disabledIcons = this.getDisabledIcons().filter(
+			(candidate) => candidate.marker !== marker
+		);
+		icon.enabled = true;
+
+		const insertIndex = Math.min(slotIndex, enabledIcons.length);
+		enabledIcons.splice(insertIndex, 0, icon);
+
+		while (enabledIcons.length > this.getGridCapacity()) {
+			const overflow = enabledIcons.pop();
+			if (overflow) {
+				overflow.enabled = false;
+				disabledIcons.unshift(overflow);
+			}
+		}
+
+		this.plugin.settings.icons = [...enabledIcons, ...disabledIcons];
+	}
+
+	private moveIconToDisabled(marker: string): boolean {
+		const enabledIcons = this.getEnabledIcons();
+		if (
+			enabledIcons.length <= 1 &&
+			enabledIcons.some((icon) => icon.marker === marker)
+		) {
+			new Notice("At least one icon must stay enabled.");
+			return false;
+		}
+
+		const icon = this.plugin.settings.icons.find(
+			(candidate) => candidate.marker === marker
+		);
+		if (!icon) {
+			return false;
+		}
+
+		icon.enabled = false;
+		const remainingEnabled = this.getEnabledIcons().filter(
+			(candidate) => candidate.marker !== marker
+		);
+		const disabledIcons = this.getDisabledIcons().filter(
+			(candidate) => candidate.marker !== marker
+		);
+		this.plugin.settings.icons = [...remainingEnabled, ...disabledIcons, icon];
+		return true;
+	}
+
+	private applyGridCapacity() {
+		this.plugin.settings.icons = fitIconsToGridCapacity(
+			this.plugin.settings.icons,
+			this.getGridCapacity()
+		);
+	}
+
+	private expandGridToFitEnabled() {
+		const rows = getResetGridRows(
+			this.plugin.settings.icons,
+			this.plugin.settings.gridColumns
+		);
+		this.plugin.settings.gridRows = Math.max(
+			this.plugin.settings.gridRows,
+			rows
+		);
+	}
+
+	private resetGridShape() {
+		this.plugin.settings.gridColumns = DEFAULT_GRID_COLUMNS;
+		this.plugin.settings.gridRows = getResetGridRows(
+			this.plugin.settings.icons,
+			DEFAULT_GRID_COLUMNS
+		);
+	}
+
+	private getEnabledIcons(): IconBulletSetting[] {
+		return this.plugin.settings.icons.filter((icon) => icon.enabled);
+	}
+
+	private getDisabledIcons(): IconBulletSetting[] {
+		return this.plugin.settings.icons.filter((icon) => !icon.enabled);
+	}
+
+	private getGridCapacity(): number {
+		return Math.max(
+			1,
+			this.plugin.settings.gridColumns * this.plugin.settings.gridRows
+		);
 	}
 
 	private renderIconSetting(
@@ -374,9 +671,18 @@ class IconBulletSettingTab extends PluginSettingTab {
 			)
 			.addToggle((toggle) =>
 				toggle.setValue(icon.enabled).onChange(async (value) => {
+					if (!value && this.getEnabledIcons().length <= 1) {
+						toggle.setValue(true);
+						new Notice("At least one icon must stay enabled.");
+						return;
+					}
 					icon.enabled = value;
+					if (value) {
+						this.expandGridToFitEnabled();
+					}
 					updateStatus(statusEl, value);
 					await this.plugin.saveSettings();
+					this.display();
 				})
 			);
 
@@ -456,6 +762,55 @@ class IconBulletSettingTab extends PluginSettingTab {
 
 function normalizePopupSize(value: unknown): PopupSize {
 	return value === "small" || value === "big" ? value : "medium";
+}
+
+function normalizeGridSize(value: unknown, fallback: number): number {
+	const parsed =
+		typeof value === "number" ? value : parseInt(String(value ?? ""), 10);
+	return Number.isFinite(parsed) ? Math.max(1, Math.floor(parsed)) : fallback;
+}
+
+function getResetGridRows(
+	icons: IconBulletSetting[],
+	columns: number = DEFAULT_GRID_COLUMNS
+): number {
+	const enabledCount = Math.max(1, icons.filter((icon) => icon.enabled).length);
+	return Math.max(1, Math.ceil(enabledCount / Math.max(1, columns)));
+}
+
+function fitIconsToGridCapacity(
+	icons: IconBulletSetting[],
+	capacity: number
+): IconBulletSetting[] {
+	const enabledIcons = icons.filter((icon) => icon.enabled);
+	const disabledIcons = icons.filter((icon) => !icon.enabled);
+	const normalizedCapacity = Math.max(1, capacity);
+
+	while (enabledIcons.length > normalizedCapacity) {
+		const overflow = enabledIcons.pop();
+		if (overflow) {
+			overflow.enabled = false;
+			disabledIcons.unshift(overflow);
+		}
+	}
+
+	if (enabledIcons.length === 0) {
+		const firstIcon = disabledIcons.shift() ?? icons[0];
+		if (firstIcon) {
+			firstIcon.enabled = true;
+			enabledIcons.push(firstIcon);
+		}
+	}
+
+	return [...enabledIcons, ...disabledIcons];
+}
+
+function getDraggedMarker(event: DragEvent): string {
+	return (
+		event.dataTransfer?.getData("application/x-icon-bullet") ||
+		event.dataTransfer?.getData("text/plain") ||
+		""
+	);
 }
 
 function updateStatus(statusEl: HTMLElement, enabled: boolean) {

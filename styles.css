@@ -189,6 +189,101 @@
 	margin-top: 12px;
 }
 
+.icon-bullet-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(160px, 220px);
+	gap: 12px;
+	margin: 8px 0 16px;
+}
+
+.icon-bullet-layout-grid {
+	--icon-bullet-layout-columns: 4;
+	display: grid;
+	grid-template-columns: repeat(var(--icon-bullet-layout-columns), minmax(78px, 1fr));
+	gap: 8px;
+	align-content: start;
+}
+
+.icon-bullet-layout-slot {
+	min-height: 58px;
+	border: 1px dashed var(--background-modifier-border);
+	border-radius: 6px;
+	background: var(--background-secondary);
+	padding: 6px;
+	display: flex;
+	align-items: stretch;
+}
+
+.icon-bullet-layout-slot.is-drop-target,
+.icon-bullet-layout-disabled-list.is-drop-target {
+	border-color: var(--text-accent);
+	background: var(--background-modifier-hover);
+}
+
+.icon-bullet-layout-item {
+	width: 100%;
+	min-width: 0;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	background: var(--background-primary);
+	color: var(--text-normal);
+	cursor: grab;
+	padding: 7px 8px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: var(--font-ui-small);
+	user-select: none;
+}
+
+.icon-bullet-layout-item:active {
+	cursor: grabbing;
+}
+
+.icon-bullet-layout-item.is-disabled {
+	opacity: 0.72;
+}
+
+.icon-bullet-layout-icon {
+	--icon-bullet-size: 1.05em;
+}
+
+.icon-bullet-layout-label {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.icon-bullet-layout-disabled {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+
+.icon-bullet-layout-disabled-title {
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	font-weight: 600;
+}
+
+.icon-bullet-layout-disabled-list {
+	border: 1px dashed var(--background-modifier-border);
+	border-radius: 6px;
+	background: var(--background-secondary);
+	padding: 6px;
+	min-height: 58px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.icon-bullet-layout-empty {
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	padding: 8px;
+}
+
 .icon-bullet-setting-row {
 	border: 1px solid var(--background-modifier-border);
 	border-radius: 6px;
