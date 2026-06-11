@@ -2,6 +2,19 @@
 
 All notable changes to Icon Bullet Helper are documented here.
 
+## 2.1.0
+
+### Changed
+
+- Align DOM handling with Obsidian popout window compatibility guidance.
+- Remove default command hotkeys so users can assign shortcuts from Obsidian Hotkeys.
+- Update English and Korean documentation for configurable Hotkeys commands.
+
+### Fixed
+
+- Avoid direct SVG insertion through `innerHTML`.
+- Avoid APIs that require a newer Obsidian minimum version than the plugin declares.
+
 ## 2.0.3
 
 ### Changed

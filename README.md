@@ -22,14 +22,23 @@ The plugin renders marker syntax as SVG icons in Live Preview and Reading view. 
 - Render `{marker}` syntax as theme-independent SVG icon bullets.
 - Render `{!marker}` syntax as callout icon bullets with a solid background tint.
 - Keep raw marker text visible in Source view and inside fenced code blocks.
-- Open the picker with `Command + ;` on macOS or `Ctrl + ;` on Windows/Linux.
 - Open the picker by typing the configured trigger after a list marker, for example `- !`.
 - Use arrow keys, mouse hover, click, `Space`, `Enter`, and `Escape` inside the picker.
 - Insert common markers with `Space` and callout markers with `Enter`.
-- Toggle the current marker between common and callout forms with `Command + .` on macOS or `Ctrl + .` on Windows/Linux.
 - Customize marker labels, marker names, colors, callout backgrounds, SVG markup, and picker layout.
 - Hide disabled entries from the picker while still rendering existing markers in notes.
 - Adapt icon and callout colors for light and dark themes without separate dark-mode settings.
+
+### Hotkeys
+
+Icon Bullet Helper does not assign default hotkeys. Assign shortcuts from Obsidian's **Settings -> Hotkeys** page for these commands:
+
+| Command | Action |
+| --- | --- |
+| **Icon Bullet Helper: Open icon bullet picker** | Opens the picker at the current cursor position. |
+| **Icon Bullet Helper: Picker: insert selected icon bullet** | Inserts the currently selected picker item as a common marker while the picker is open. |
+| **Icon Bullet Helper: Picker: insert selected callout icon bullet** | Inserts the currently selected picker item as a callout marker while the picker is open. |
+| **Icon Bullet Helper: Toggle current icon bullet callout state** | Toggles the marker on the current line between common and callout forms. |
 
 ## Syntax
 
@@ -72,7 +81,6 @@ Default picker controls:
 | Insert common marker | `Space` |
 | Insert callout marker | `Enter` |
 | Close picker | `Escape` |
-| Toggle current marker between common and callout | `Command + .` or `Ctrl + .` |
 
 Additional shortcuts can be assigned from Obsidian's **Hotkeys** settings to the picker and toggle commands.
 
@@ -125,7 +133,7 @@ Settings are split into three tabs.
 
 - Change the picker size.
 - Change the picker trigger text. The default trigger is `!`.
-- Review picker shortcut behavior.
+- Review picker command behavior.
 - Restore all plugin settings to the built-in defaults.
 
 ### Icon Layout

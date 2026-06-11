@@ -92,15 +92,9 @@ export default class IconBulletPlugin extends Plugin {
 		this.addCommand({
 			id: "open-icon-bullet-picker",
 			name: "Open icon bullet picker",
-			callback: async () => {
+			callback: () => {
 				this.openIconPicker(true);
 			},
-			hotkeys: [
-				{
-					modifiers: ["Mod"],
-					key: ";",
-				},
-			],
 		});
 
 		this.addCommand({
@@ -125,12 +119,6 @@ export default class IconBulletPlugin extends Plugin {
 			callback: () => {
 				this.toggleCurrentIconBulletVariant();
 			},
-			hotkeys: [
-				{
-					modifiers: ["Mod"],
-					key: ".",
-				},
-			],
 		});
 	}
 
@@ -263,7 +251,7 @@ export default class IconBulletPlugin extends Plugin {
 
 		this.app.workspace.getLeavesOfType("markdown").forEach((leaf) => {
 			const view = leaf.view as MarkdownView;
-			const editorView = (view.editor as any).cm as EditorView | undefined;
+			const editorView = getEditorView(view);
 
 			editorView?.dispatch({
 				effects: [setIconBulletConfig.of(config)],
@@ -364,7 +352,7 @@ class IconBulletSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Picker selection shortcuts")
-			.setDesc("Space inserts a common marker like '{p}'. Enter inserts a callout marker like '{!p}'. Command + . toggles the current icon bullet between both forms. To add more shortcuts, assign hotkeys to the picker or toggle commands in Obsidian Hotkeys.");
+			.setDesc("Space inserts a common marker like '{p}'. Enter inserts a callout marker like '{!p}'. Assign shortcuts to picker and toggle commands in Obsidian Hotkeys.");
 
 		new Setting(containerEl)
 			.setName("Restore defaults")
@@ -437,14 +425,14 @@ class IconBulletSettingTab extends PluginSettingTab {
 				text
 					.setPlaceholder(String(DEFAULT_GRID_COLUMNS))
 					.setValue(String(this.plugin.settings.gridColumns));
-				text.inputEl.addEventListener("change", async () => {
+				text.inputEl.addEventListener("change", () => {
 					const nextValue = normalizeGridSize(
 						text.inputEl.value,
 						this.plugin.settings.gridColumns
 					);
 					if (nextValue !== this.plugin.settings.gridColumns) {
 						this.plugin.settings.gridColumns = nextValue;
-						await applyGridSizeChange();
+						void applyGridSizeChange();
 					} else {
 						text.setValue(String(this.plugin.settings.gridColumns));
 					}
@@ -465,14 +453,14 @@ class IconBulletSettingTab extends PluginSettingTab {
 				text
 					.setPlaceholder(String(DEFAULT_GRID_ROWS))
 					.setValue(String(this.plugin.settings.gridRows));
-				text.inputEl.addEventListener("change", async () => {
+				text.inputEl.addEventListener("change", () => {
 					const nextValue = normalizeGridSize(
 						text.inputEl.value,
 						this.plugin.settings.gridRows
 					);
 					if (nextValue !== this.plugin.settings.gridRows) {
 						this.plugin.settings.gridRows = nextValue;
-						await applyGridSizeChange();
+						void applyGridSizeChange();
 					} else {
 						text.setValue(String(this.plugin.settings.gridRows));
 					}
@@ -538,20 +526,24 @@ class IconBulletSettingTab extends PluginSettingTab {
 		icon: IconBulletSetting,
 		state: "enabled" | "disabled"
 	): HTMLElement {
-		const iconEl = document.createElement("div");
+		const iconEl = activeDocument.createElement("div");
 		iconEl.className = `icon-bullet-layout-item is-${state}`;
 		iconEl.draggable = true;
 		iconEl.dataset.marker = icon.marker;
 
 		iconEl.appendChild(
-			createIconElement(icon, "icon-bullet-icon icon-bullet-layout-icon")
+			createIconElement(
+				icon,
+				"icon-bullet-icon icon-bullet-layout-icon",
+				iconEl.ownerDocument
+			)
 		);
 		iconEl.createSpan({
 			cls: "icon-bullet-layout-label",
 			text: icon.label,
 		});
 
-		iconEl.addEventListener("dragstart", (event) => {
+		iconEl.addEventListener("dragstart", (event: DragEvent) => {
 			if (!event.dataTransfer) {
 				return;
 			}
@@ -575,7 +567,7 @@ class IconBulletSettingTab extends PluginSettingTab {
 		slotEl.addEventListener("dragleave", () => {
 			slotEl.removeClass("is-drop-target");
 		});
-		slotEl.addEventListener("drop", async (event) => {
+		slotEl.addEventListener("drop", (event) => {
 			event.preventDefault();
 			slotEl.removeClass("is-drop-target");
 			const marker = getDraggedMarker(event);
@@ -584,8 +576,7 @@ class IconBulletSettingTab extends PluginSettingTab {
 			}
 
 			this.moveIconToGrid(marker, slotIndex);
-			await this.plugin.saveSettings();
-			this.display();
+			void this.plugin.saveSettings().then(() => this.display());
 		});
 	}
 
@@ -600,7 +591,7 @@ class IconBulletSettingTab extends PluginSettingTab {
 		disabledEl.addEventListener("dragleave", () => {
 			disabledEl.removeClass("is-drop-target");
 		});
-		disabledEl.addEventListener("drop", async (event) => {
+		disabledEl.addEventListener("drop", (event) => {
 			event.preventDefault();
 			disabledEl.removeClass("is-drop-target");
 			const marker = getDraggedMarker(event);
@@ -611,8 +602,7 @@ class IconBulletSettingTab extends PluginSettingTab {
 			if (!this.moveIconToDisabled(marker)) {
 				return;
 			}
-			await this.plugin.saveSettings();
-			this.display();
+			void this.plugin.saveSettings().then(() => this.display());
 		});
 	}
 
@@ -729,7 +719,7 @@ class IconBulletSettingTab extends PluginSettingTab {
 		}
 		if (this.pendingScrollMarker === icon.marker) {
 			this.pendingScrollMarker = null;
-			setTimeout(() => {
+			activeWindow.setTimeout(() => {
 				scrollElementIntoViewWithOffset(rowEl, NEW_MARKER_SCROLL_OFFSET);
 			}, 0);
 		}
@@ -741,7 +731,11 @@ class IconBulletSettingTab extends PluginSettingTab {
 			cls: "icon-bullet-setting-preview",
 		});
 		previewEl.appendChild(
-			createIconElement(icon, "icon-bullet-icon icon-bullet-settings-icon")
+			createIconElement(
+				icon,
+				"icon-bullet-icon icon-bullet-settings-icon",
+				previewEl.ownerDocument
+			)
 		);
 		summaryEl.createSpan({
 			cls: "icon-bullet-setting-title",
@@ -872,16 +866,17 @@ class IconBulletSettingTab extends PluginSettingTab {
 				});
 			});
 
-		new Setting(controlsEl).addButton((button) =>
-			button
-				.setButtonText("Remove")
-				.setDisabled(!icon.custom)
-				.onClick(async () => {
-					this.plugin.settings.icons.splice(index, 1);
-					await this.plugin.saveSettings();
-					this.display();
-				})
-		);
+		new Setting(controlsEl).addButton((button) => {
+			button.setButtonText("Remove").onClick(async () => {
+				if (!icon.custom) {
+					return;
+				}
+				this.plugin.settings.icons.splice(index, 1);
+				await this.plugin.saveSettings();
+				this.display();
+			});
+			button.buttonEl.disabled = !icon.custom;
+		});
 	}
 
 	private registerCommitText(
@@ -905,7 +900,7 @@ class IconBulletSettingTab extends PluginSettingTab {
 			} finally {
 				lastCommittedValue = inputEl.value;
 				isCommitting = false;
-				setTimeout(() => {
+				activeWindow.setTimeout(() => {
 					scrollParent.scrollTop = scrollTop;
 				}, 0);
 			}
@@ -951,9 +946,18 @@ function mergeLoadedIconsWithDefaults(
 	return [...loadedIcons, ...missingDefaults];
 }
 
+function getEditorView(view: MarkdownView): EditorView | undefined {
+	const editor = view.editor as { cm?: EditorView };
+	return editor.cm;
+}
+
 function normalizeGridSize(value: unknown, fallback: number): number {
 	const parsed =
-		typeof value === "number" ? value : parseInt(String(value ?? ""), 10);
+		typeof value === "number"
+			? value
+			: typeof value === "string"
+				? parseInt(value, 10)
+				: NaN;
 	return Number.isFinite(parsed) ? Math.max(1, Math.floor(parsed)) : fallback;
 }
 
@@ -1028,7 +1032,7 @@ function getScrollParent(element: HTMLElement): HTMLElement {
 		current = current.parentElement;
 	}
 
-	return document.documentElement;
+	return element.ownerDocument.documentElement;
 }
 
 function updateStatus(statusEl: HTMLElement, enabled: boolean) {

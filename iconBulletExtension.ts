@@ -45,8 +45,12 @@ class IconBulletWidget extends WidgetType {
 		super();
 	}
 
-	toDOM(): HTMLElement {
-		return createIconElement(this.icon, "icon-bullet-icon icon-bullet-cm-icon");
+	toDOM(view: EditorView): HTMLElement {
+		return createIconElement(
+			this.icon,
+			"icon-bullet-icon icon-bullet-cm-icon",
+			view.dom.ownerDocument
+		);
 	}
 
 	eq(other: IconBulletWidget): boolean {
@@ -145,12 +149,12 @@ function isLivePreviewMode(view: EditorView): boolean {
 	return Boolean(view.dom.closest(".markdown-source-view.is-live-preview"));
 }
 
-function getCodeFenceAt(document: Text, position: number): string | null {
+function getCodeFenceAt(doc: Text, position: number): string | null {
 	let codeFence: string | null = null;
-	const firstVisibleLine = document.lineAt(position);
+	const firstVisibleLine = doc.lineAt(position);
 
 	for (let lineNumber = 1; lineNumber < firstVisibleLine.number; lineNumber++) {
-		codeFence = updateCodeFence(codeFence, document.line(lineNumber).text);
+		codeFence = updateCodeFence(codeFence, doc.line(lineNumber).text);
 	}
 
 	return codeFence;

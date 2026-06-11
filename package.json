@@ -1,12 +1,12 @@
 {
 	"name": "icon-bullet-helper",
-	"version": "2.0.3",
+	"version": "2.1.0",
 	"description": "Theme-independent SVG icon bullets from plain Markdown markers for Obsidian.",
 	"main": "main.js",
 	"type": "module",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
-		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && mkdir -p build && cp main.js manifest.json styles.css build/",
+		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
 		"version": "node version-bump.mjs && git add manifest.json versions.json"
 	},
 	"keywords": [

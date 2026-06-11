@@ -51,7 +51,8 @@ export function createIconPicker(
 		return;
 	}
 
-	const pickerEl = document.createElement("div");
+	const pickerDocument = activeDocument;
+	const pickerEl = pickerDocument.createElement("div");
 	pickerEl.className = `icon-picker icon-picker-${pickerSize}`;
 
 	let selectedIndex = 0;
@@ -64,13 +65,15 @@ export function createIconPicker(
 	);
 
 	icons.forEach((icon, index) => {
-		const iconEl = document.createElement("button");
+		const iconEl = pickerDocument.createElement("button");
 		iconEl.type = "button";
 		iconEl.className = "icon-option";
 
-		iconEl.appendChild(createIconElement(icon, "icon-bullet-icon icon-picker-svg"));
+		iconEl.appendChild(
+			createIconElement(icon, "icon-bullet-icon icon-picker-svg", pickerDocument)
+		);
 
-		const nameSpan = document.createElement("span");
+		const nameSpan = pickerDocument.createElement("span");
 		nameSpan.className = "icon-picker-label";
 		nameSpan.textContent = icon.label;
 		iconEl.appendChild(nameSpan);
@@ -168,7 +171,7 @@ export function createIconPicker(
 		);
 		closePicker();
 
-		setTimeout(() => {
+		activeWindow.setTimeout(() => {
 			editor.setCursor(lineNumber, insertText.length);
 			editor.focus();
 		}, 0);
@@ -255,9 +258,9 @@ export function createIconPicker(
 	pickerEl.style.left = `${cursorCoords.left}px`;
 	pickerEl.style.top = `${cursorCoords.top + 20}px`;
 
-	document.body.appendChild(pickerEl);
+	pickerDocument.body.appendChild(pickerEl);
 	app.keymap.pushScope(pickerScope);
-	document.addEventListener("keydown", handleKeyDownCapture, true);
+	pickerDocument.addEventListener("keydown", handleKeyDownCapture, true);
 
 	const handleClickOutside = (event: MouseEvent) => {
 		if (!pickerEl.contains(event.target as Node)) {
@@ -273,10 +276,10 @@ export function createIconPicker(
 
 		isClosed = true;
 		if (pickerEl.parentNode) {
-			document.body.removeChild(pickerEl);
+			pickerEl.remove();
 		}
-		document.removeEventListener("click", handleClickOutside);
-		document.removeEventListener("keydown", handleKeyDownCapture, true);
+		pickerDocument.removeEventListener("click", handleClickOutside);
+		pickerDocument.removeEventListener("keydown", handleKeyDownCapture, true);
 		app.keymap.popScope(pickerScope);
 		if (activePickerClose === closePicker) {
 			activePickerClose = null;
@@ -288,9 +291,9 @@ export function createIconPicker(
 
 	activePickerClose = closePicker;
 
-	setTimeout(() => {
+	activeWindow.setTimeout(() => {
 		if (!isClosed) {
-			document.addEventListener("click", handleClickOutside);
+			pickerDocument.addEventListener("click", handleClickOutside);
 		}
 	}, 0);
 }

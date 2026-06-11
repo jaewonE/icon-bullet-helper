@@ -6,8 +6,13 @@ import {
 	createIconElement,
 } from "default_icons";
 
+const SHOW_TEXT_NODE = 4;
+
 function getFirstTextNode(li: HTMLElement): Text | null {
-	const walker = document.createTreeWalker(li, NodeFilter.SHOW_TEXT);
+	const walker = li.ownerDocument.createTreeWalker(
+		li,
+		SHOW_TEXT_NODE
+	);
 
 	while (walker.nextNode()) {
 		const node = walker.currentNode as Text;
@@ -74,12 +79,13 @@ export function buildIconBulletPostProcessor(
 			}
 			li.setAttribute("data-icon-bullet-marker", marker);
 			li.setAttribute("data-icon-bullet-variant", variant);
-			li.prepend(
-				createIconElement(
-					icon,
-					"icon-bullet-icon icon-bullet-reading-icon"
-				)
-			);
+				li.prepend(
+					createIconElement(
+						icon,
+						"icon-bullet-icon icon-bullet-reading-icon",
+						li.ownerDocument
+					)
+				);
 		});
 	};
 }

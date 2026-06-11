@@ -438,8 +438,8 @@ export function sanitizeSvg(svg: string | undefined): string {
 
 	try {
 		const parser = new DOMParser();
-		const document = parser.parseFromString(source, "image/svg+xml");
-		const svgElement = document.documentElement;
+		const parsedDocument = parser.parseFromString(source, "image/svg+xml");
+		const svgElement = parsedDocument.documentElement;
 
 		if (
 			svgElement.nodeName.toLowerCase() !== "svg" ||
@@ -474,7 +474,7 @@ export function sanitizeSvg(svg: string | undefined): string {
 		svgElement.setAttribute("xmlns", "http://www.w3.org/2000/svg");
 		svgElement.setAttribute("aria-hidden", "true");
 		svgElement.setAttribute("focusable", "false");
-		return svgElement.outerHTML;
+		return new XMLSerializer().serializeToString(svgElement);
 	} catch {
 		return FALLBACK_SVG;
 	}
@@ -590,11 +590,22 @@ export function buildIconBulletConfig(
 	};
 }
 
+function createSanitizedSvgElement(
+	svg: string | undefined,
+	ownerDocument: Document
+): SVGSVGElement {
+	const parser = new DOMParser();
+	const parsedDocument = parser.parseFromString(sanitizeSvg(svg), "image/svg+xml");
+	const svgElement = parsedDocument.documentElement;
+	return ownerDocument.importNode(svgElement, true) as unknown as SVGSVGElement;
+}
+
 export function createIconElement(
 	icon: IconBulletSetting,
-	className: string
+	className: string,
+	ownerDocument: Document = activeDocument
 ): HTMLElement {
-	const element = document.createElement("span");
+	const element = ownerDocument.createElement("span");
 	element.className = className;
 	element.setAttribute("aria-label", icon.label);
 	const commonToken = markerToken(icon.marker);
@@ -615,7 +626,9 @@ export function createIconElement(
 				"--icon-bullet-color-dark",
 				getDarkModeIconColor(displayColor)
 			);
-			element.innerHTML = sanitizeSvg(icon.displaySvg);
+			element.appendChild(
+				createSanitizedSvgElement(icon.displaySvg, ownerDocument)
+			);
 			return element;
 		}
 
@@ -629,6 +642,6 @@ export function createIconElement(
 		"--icon-bullet-color-dark",
 		getDarkModeIconColor(icon.color)
 	);
-	element.innerHTML = sanitizeSvg(icon.svg);
+	element.appendChild(createSanitizedSvgElement(icon.svg, ownerDocument));
 	return element;
 }
