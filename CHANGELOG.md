@@ -2,6 +2,12 @@
 
 All notable changes to Icon Bullet Helper are documented here.
 
+## 2.2.1
+
+### Fixed
+
+- Keep the plugin settings view responsive after icon layout changes or enabled/disabled toggles when non-editor Markdown leaves are open.
+
 ## 2.2.0
 
 ### Fixed

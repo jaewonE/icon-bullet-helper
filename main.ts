@@ -946,9 +946,10 @@ function mergeLoadedIconsWithDefaults(
 	return [...loadedIcons, ...missingDefaults];
 }
 
-function getEditorView(view: MarkdownView): EditorView | undefined {
-	const editor = view.editor as { cm?: EditorView };
-	return editor.cm;
+function getEditorView(view: unknown): EditorView | undefined {
+	const editor = (view as { editor?: { cm?: EditorView } } | null | undefined)
+		?.editor;
+	return editor?.cm;
 }
 
 function normalizeGridSize(value: unknown, fallback: number): number {

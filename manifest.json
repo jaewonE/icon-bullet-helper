@@ -1,7 +1,7 @@
 {
 	"id": "checkbox-styling-helper",
 	"name": "Icon Bullet Helper",
-	"version": "2.2.0",
+	"version": "2.2.1",
 	"minAppVersion": "0.15.0",
 	"description": "Render theme-independent SVG icon bullets from plain Markdown markers.",
 	"author": "JaewonE",
