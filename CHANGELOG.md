@@ -2,6 +2,12 @@
 
 All notable changes to Icon Bullet Helper are documented here.
 
+## 2.2.0
+
+### Fixed
+
+- Preserve existing list item text, including wikilinks, when picker selections convert unordered lists, ordered lists, and task checkbox markers into icon bullet or checkbox syntax.
+
 ## 2.1.0
 
 ### Changed

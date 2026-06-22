@@ -25,6 +25,7 @@ Icon Bullet Helper는 일반 Markdown 문법을 유지하면서 Obsidian 목록�
 - 목록 marker 뒤에 trigger를 입력해 picker를 열 수 있습니다. 기본값은 `- !`입니다.
 - picker 안에서 방향키, 마우스 hover, click, `Space`, `Enter`, `Escape`를 사용할 수 있습니다.
 - `Space`는 common marker를 삽입하고, `Enter`는 callout marker를 삽입합니다.
+- Picker로 list marker를 변환할 때 wikilink를 포함한 기존 list item 본문을 보존합니다.
 - marker 이름, label, 색상, callout 배경색, SVG, picker layout을 설정할 수 있습니다.
 - Disabled 항목은 picker에서 숨겨지지만 기존 노트의 marker 렌더링은 유지됩니다.
 - 별도 dark-mode 설정 없이 light/dark theme에서 읽기 좋은 색상으로 조정됩니다.
@@ -83,6 +84,8 @@ Picker는 다음 방식으로 열 수 있습니다.
 | Picker 닫기 | `Escape` |
 
 추가 단축키는 Obsidian의 **Hotkeys** 설정에서 picker 및 toggle 명령에 직접 할당할 수 있습니다.
+
+Picker 선택은 list marker와 기존 icon bullet 또는 task checkbox marker만 바꿉니다. Link, wikilink, 일반 문장 같은 기존 list item 본문은 그대로 유지됩니다.
 
 ## 기본 항목
 

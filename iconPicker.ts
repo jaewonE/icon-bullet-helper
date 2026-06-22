@@ -126,7 +126,7 @@ export function createIconPicker(
 		}
 
 		const listMatch = rest.match(
-			/^((?:[-*+]|\d+[.)])\s+)(?:(?:\{!?[A-Za-z0-9_-]+\}|\[[^\]]*\])\s*)?/
+			/^((?:[-*+]|\d+[.)])\s+)(?:(?:\{!?[A-Za-z0-9_-]+\}|\[(?!\[)[^\]\n]*\])\s*)?/
 		);
 		if (listMatch) {
 			const marker = listMatch[1].trim();

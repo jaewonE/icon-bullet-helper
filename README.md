@@ -25,6 +25,7 @@ The plugin renders marker syntax as SVG icons in Live Preview and Reading view. 
 - Open the picker by typing the configured trigger after a list marker, for example `- !`.
 - Use arrow keys, mouse hover, click, `Space`, `Enter`, and `Escape` inside the picker.
 - Insert common markers with `Space` and callout markers with `Enter`.
+- Preserve the existing list item body, including wikilinks, when converting list markers from the picker.
 - Customize marker labels, marker names, colors, callout backgrounds, SVG markup, and picker layout.
 - Hide disabled entries from the picker while still rendering existing markers in notes.
 - Adapt icon and callout colors for light and dark themes without separate dark-mode settings.
@@ -83,6 +84,8 @@ Default picker controls:
 | Close picker | `Escape` |
 
 Additional shortcuts can be assigned from Obsidian's **Hotkeys** settings to the picker and toggle commands.
+
+Picker selections replace only the list marker and any existing icon bullet or task checkbox marker. Existing list body text such as links, wikilinks, and normal prose remains in place.
 
 ## Built-in Items
 
