@@ -2,6 +2,13 @@
 
 All notable changes to Icon Bullet Helper are documented here.
 
+## 2.2.2
+
+### Changed
+
+- Add default shortcuts for opening the icon bullet picker and toggling the current icon bullet callout state.
+- Document the picker and callout toggle shortcuts in English and Korean README files.
+
 ## 2.2.1
 
 ### Fixed

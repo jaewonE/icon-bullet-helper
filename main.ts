@@ -95,6 +95,12 @@ export default class IconBulletPlugin extends Plugin {
 			callback: () => {
 				this.openIconPicker(true);
 			},
+			hotkeys: [
+				{
+					modifiers: ["Mod"],
+					key: ";",
+				},
+			],
 		});
 
 		this.addCommand({
@@ -119,6 +125,12 @@ export default class IconBulletPlugin extends Plugin {
 			callback: () => {
 				this.toggleCurrentIconBulletVariant();
 			},
+			hotkeys: [
+				{
+					modifiers: ["Mod"],
+					key: ".",
+				},
+			],
 		});
 	}
 

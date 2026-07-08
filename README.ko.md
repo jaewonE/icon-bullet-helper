@@ -22,9 +22,11 @@ Icon Bullet Helper는 일반 Markdown 문법을 유지하면서 Obsidian 목록�
 - `{marker}` 문법을 테마에 의존하지 않는 SVG 아이콘 bullet로 렌더링합니다.
 - `{!marker}` 문법을 배경색이 있는 callout 아이콘 bullet로 렌더링합니다.
 - Source view와 fenced code block 안에서는 원본 텍스트를 그대로 보여줍니다.
+- macOS에서는 `Command + ;`, Windows/Linux에서는 `Ctrl + ;`로 picker를 열 수 있습니다.
 - 목록 marker 뒤에 trigger를 입력해 picker를 열 수 있습니다. 기본값은 `- !`입니다.
 - picker 안에서 방향키, 마우스 hover, click, `Space`, `Enter`, `Escape`를 사용할 수 있습니다.
 - `Space`는 common marker를 삽입하고, `Enter`는 callout marker를 삽입합니다.
+- 현재 marker는 macOS `Command + .`, Windows/Linux `Ctrl + .`로 common/callout 상태를 전환할 수 있습니다.
 - Picker로 list marker를 변환할 때 wikilink를 포함한 기존 list item 본문을 보존합니다.
 - marker 이름, label, 색상, callout 배경색, SVG, picker layout을 설정할 수 있습니다.
 - Disabled 항목은 picker에서 숨겨지지만 기존 노트의 marker 렌더링은 유지됩니다.
@@ -32,14 +34,14 @@ Icon Bullet Helper는 일반 Markdown 문법을 유지하면서 Obsidian 목록�
 
 ### Hotkeys
 
-Icon Bullet Helper는 기본 단축키를 지정하지 않습니다. Obsidian의 **Settings -> Hotkeys**에서 다음 명령에 원하는 단축키를 할당할 수 있습니다.
+Icon Bullet Helper는 picker와 callout 전환 명령에 기본 단축키를 지정합니다. Obsidian의 **Settings -> Hotkeys**에서 변경할 수 있습니다.
 
-| 명령 | 동작 |
-| --- | --- |
-| **Icon Bullet Helper: Open icon bullet picker** | 현재 커서 위치에서 picker를 엽니다. |
-| **Icon Bullet Helper: Picker: insert selected icon bullet** | picker가 열려 있을 때 현재 선택된 항목을 common marker로 삽입합니다. |
-| **Icon Bullet Helper: Picker: insert selected callout icon bullet** | picker가 열려 있을 때 현재 선택된 항목을 callout marker로 삽입합니다. |
-| **Icon Bullet Helper: Toggle current icon bullet callout state** | 현재 줄의 marker를 common/callout 형식으로 전환합니다. |
+| 명령 | 기본 단축키 | 동작 |
+| --- | --- | --- |
+| **Icon Bullet Helper: Open icon bullet picker** | macOS `Command + ;`, Windows/Linux `Ctrl + ;` | 현재 커서 위치에서 picker를 엽니다. |
+| **Icon Bullet Helper: Picker: insert selected icon bullet** | 없음 | picker가 열려 있을 때 현재 선택된 항목을 common marker로 삽입합니다. |
+| **Icon Bullet Helper: Picker: insert selected callout icon bullet** | 없음 | picker가 열려 있을 때 현재 선택된 항목을 callout marker로 삽입합니다. |
+| **Icon Bullet Helper: Toggle current icon bullet callout state** | macOS `Command + .`, Windows/Linux `Ctrl + .` | 현재 줄의 marker를 common/callout 형식으로 전환합니다. |
 
 ## 문법
 
@@ -82,8 +84,9 @@ Picker는 다음 방식으로 열 수 있습니다.
 | Common marker 삽입 | `Space` |
 | Callout marker 삽입 | `Enter` |
 | Picker 닫기 | `Escape` |
+| 현재 marker common/callout 전환 | `Command + .` 또는 `Ctrl + .` |
 
-추가 단축키는 Obsidian의 **Hotkeys** 설정에서 picker 및 toggle 명령에 직접 할당할 수 있습니다.
+추가 단축키는 Obsidian의 **Hotkeys** 설정에서 직접 할당할 수 있습니다.
 
 Picker 선택은 list marker와 기존 icon bullet 또는 task checkbox marker만 바꿉니다. Link, wikilink, 일반 문장 같은 기존 list item 본문은 그대로 유지됩니다.
 
